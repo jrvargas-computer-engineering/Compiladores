@@ -6,4 +6,7 @@ Para executar:
 ```
 flex scanner.l
 gcc lex.yy.c -c; gcc main.c -c ; gcc main.o lex.yy.o -o el; cat testes/test1.txt | ./el
+
 ```
+
+[O que é Flex?](https://github.com/jrvargas-computer-engineering/Compiladores/blob/main/flex.md)

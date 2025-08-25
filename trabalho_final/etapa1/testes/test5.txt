@@ -1,0 +1,4 @@
+tipo   var    // comentário no final da linha
+se    retorna
+// comentário isolado
+enquanto   com

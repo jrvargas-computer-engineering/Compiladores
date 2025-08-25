@@ -5,5 +5,5 @@ Repositório para a disciplina de Compiladores, ofertada no 7° semestre do curs
 Para executar: 
 ```
 flex scanner.l
-gcc lex.yy.c -c; gcc main.c -c ; gcc main.o lex.yy.o -o el; cat arquivo_de_teste.txt | ./el
+gcc lex.yy.c -c; gcc main.c -c ; gcc main.o lex.yy.o -o el; cat testes/test1.txt | ./el
 ```

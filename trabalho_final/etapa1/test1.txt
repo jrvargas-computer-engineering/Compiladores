@@ -1,6 +1,7 @@
 tipo var senao decimal se inteiro retorna enquanto com
 // oiiiiiiiiiiiii
-12345
+
+3434jshdads343
 
 // simbolos
 ! * / % + - < > [ ] ( ) = , ; & |

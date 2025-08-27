@@ -15,8 +15,6 @@ inteiro  { return TK_INTEIRO; }
 retorna  { return TK_RETORNA; }
 enquanto { return TK_ENQUANTO; }
 com      { return TK_COM; }
-[0-9]*\.[0-9]+[a-zA-Z_]+    { return TK_ER;}
-[0-9]+[a-zA-Z_]+    { return TK_ER;}
 [0-9]*\.[0-9]+  { return TK_LI_DECIMAL;}
 [0-9]+  { return TK_LI_INTEIRO;}
 [a-z_][a-z0-9_]* { return TK_ID;}

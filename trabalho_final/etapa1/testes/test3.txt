@@ -1,2 +1,4 @@
 abc _abc abc123 _123abc abc_123
-123abc // inválido, mas nosso analisador vai pegar como número e depois erro
+1
+.00
+.123abc // inválido, mas nosso analisador vai pegar como número e depois erro

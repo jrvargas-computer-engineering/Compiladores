@@ -1,0 +1,161 @@
+Terminals unused in grammar
+
+    TK_TIPO
+    TK_VAR
+    TK_SENAO
+    TK_SE
+    TK_ATRIB
+    TK_RETORNA
+    TK_SETA
+    TK_ENQUANTO
+    TK_COM
+    TK_OC_LE
+    TK_OC_GE
+    TK_OC_EQ
+    TK_OC_NE
+    TK_ID
+    TK_LI_INTEIRO
+    TK_LI_DECIMAL
+    TK_ER
+
+
+Grammar
+
+    0 $accept: programa $end
+
+    1 programa: lista ';'
+    2         | ε
+
+    3 lista: elemento
+    4      | lista ',' elemento
+
+    5 elemento: TK_INTEIRO ',' TK_DECIMAL
+
+
+Terminals, with rules where they appear
+
+    $end (0) 0
+    ',' (44) 4 5
+    ';' (59) 1
+    error (256)
+    TK_TIPO (258)
+    TK_VAR (259)
+    TK_SENAO (260)
+    TK_DECIMAL (261) 5
+    TK_SE (262)
+    TK_INTEIRO (263) 5
+    TK_ATRIB (264)
+    TK_RETORNA (265)
+    TK_SETA (266)
+    TK_ENQUANTO (267)
+    TK_COM (268)
+    TK_OC_LE (269)
+    TK_OC_GE (270)
+    TK_OC_EQ (271)
+    TK_OC_NE (272)
+    TK_ID (273)
+    TK_LI_INTEIRO (274)
+    TK_LI_DECIMAL (275)
+    TK_ER (276)
+
+
+Nonterminals, with rules where they appear
+
+    $accept (24)
+        on left: 0
+    programa (25)
+        on left: 1 2
+        on right: 0
+    lista (26)
+        on left: 3 4
+        on right: 1 4
+    elemento (27)
+        on left: 5
+        on right: 3 4
+
+
+State 0
+
+    0 $accept: • programa $end
+
+    TK_INTEIRO  shift, and go to state 1
+
+    $default  reduce using rule 2 (programa)
+
+    programa  go to state 2
+    lista     go to state 3
+    elemento  go to state 4
+
+
+State 1
+
+    5 elemento: TK_INTEIRO • ',' TK_DECIMAL
+
+    ','  shift, and go to state 5
+
+
+State 2
+
+    0 $accept: programa • $end
+
+    $end  shift, and go to state 6
+
+
+State 3
+
+    1 programa: lista • ';'
+    4 lista: lista • ',' elemento
+
+    ';'  shift, and go to state 7
+    ','  shift, and go to state 8
+
+
+State 4
+
+    3 lista: elemento •
+
+    $default  reduce using rule 3 (lista)
+
+
+State 5
+
+    5 elemento: TK_INTEIRO ',' • TK_DECIMAL
+
+    TK_DECIMAL  shift, and go to state 9
+
+
+State 6
+
+    0 $accept: programa $end •
+
+    $default  accept
+
+
+State 7
+
+    1 programa: lista ';' •
+
+    $default  reduce using rule 1 (programa)
+
+
+State 8
+
+    4 lista: lista ',' • elemento
+
+    TK_INTEIRO  shift, and go to state 1
+
+    elemento  go to state 10
+
+
+State 9
+
+    5 elemento: TK_INTEIRO ',' TK_DECIMAL •
+
+    $default  reduce using rule 5 (elemento)
+
+
+State 10
+
+    4 lista: lista ',' elemento •
+
+    $default  reduce using rule 4 (lista)

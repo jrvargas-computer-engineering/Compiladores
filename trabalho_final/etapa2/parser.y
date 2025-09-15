@@ -210,11 +210,72 @@ comando_enquanto:
     TK_ENQUANTO '(' expressao ')' bloco_comandos
 ;
 
-// ==========  Expressoes  ==========
+// ==========  Expressoes (COM PRECEDENCIA E ASSOCIATIVIDADE) ==========
 expressao:
-    
+    expr_nivel7
 ;
 
+// Nível 7: OU Lógico (Menor Precedência)
+expr_nivel7:
+    expr_nivel7 '|' expr_nivel6
+    | expr_nivel6
+;
+
+// Nível 6: E Lógico
+expr_nivel6:
+    expr_nivel6 '&' expr_nivel5
+    | expr_nivel5
+;
+
+// Nível 5: Operadores de Igualdade (==, !=)
+expr_nivel5:
+    expr_nivel5 TK_OC_EQ expr_nivel4
+    | expr_nivel5 TK_OC_NE expr_nivel4
+    | expr_nivel4
+;
+
+// Nível 4: Operadores Relacionais (<, >, <=, >=)
+expr_nivel4:
+    expr_nivel4 '<' expr_nivel3
+    | expr_nivel4 '>' expr_nivel3
+    | expr_nivel4 TK_OC_LE expr_nivel3
+    | expr_nivel4 TK_OC_GE expr_nivel3
+    | expr_nivel3
+;
+
+// Nível 3: Soma e Subtração (Binários)
+expr_nivel3:
+    expr_nivel3 '+' expr_nivel2
+    | expr_nivel3 '-' expr_nivel2
+    | expr_nivel2
+;
+
+// Nível 2: Multiplicação, Divisão, Resto
+expr_nivel2:
+    expr_nivel2 '*' expr_nivel1
+    | expr_nivel2 '/' expr_nivel1
+    | expr_nivel2 '%' expr_nivel1
+    | expr_nivel1
+;
+
+// Nível 1: Operadores Unários (+, -, !)
+// Operadores unários são prefixados e têm associatividade à direita.
+// Por isso, a recursão aqui é à direita.
+expr_nivel1:
+    '+' expr_nivel1
+    | '-' expr_nivel1
+    | '!' expr_nivel1
+    | fator
+;
+
+// Nível 0: "Fator" - Elementos de maior precedência
+// Inclui literais, identificadores, chamadas de função e expressões entre parênteses.
+fator:
+    TK_ID
+    | literal
+    | chamada_funcao
+    | '(' expressao ')' // Permite forçar a precedência
+;
 %%
 
 // yylineno eh uma variável global que o Flex (scanner.l) mantém com o número da linha atual

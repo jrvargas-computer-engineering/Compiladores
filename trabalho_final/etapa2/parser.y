@@ -27,33 +27,87 @@ void yyerror (char const *mensagem);
 %token TK_LI_DECIMAL
 %token TK_ER
 
+
+// ====================  Regras da gramatica  ====================  
 %%
-// As regras da gramática
+/*
 programa: lista ';';
 programa: %empty;
 lista: elemento;
 lista: lista ',' elemento;
 elemento: TK_INTEIRO ',' TK_DECIMAL;
+*/
 
-// Estrutura do programa
+// ==========  Estrutura do programa ==========
+programa:
+    %empty
+    | lista_elementos_opcional
+; // Um programa eh composto por uma lista opcional de elementos
 
-element_list_opt:
-    /* vazio */
-    | element_list
+lista_elementos_opcional:
+    lista_elementos ';'
+; // a lista eh terminada pelo operador ponto-e-virgula
+
+lista_elementos:
+    elemento
+    | lista_elementos ',' elemento
+; // Os elementos da lista são separados pelo operador virgula (left recursion)
+
+elemento:
+    definicao_funcao
+    | declaracao_variavel
+; /* 
+Cada elemento dessa lista eh ou uma definicao de funcao 
+ou uma declaracao de variavel 
+*/
+
+// ==========  Definicao de funcao  ==========
+definicao_funcao:
+    cabecalho_funcao corpo_funcao
+; // Uma definicao de funcao eh composta por um cabecalho e um corpo
+
+cabecalho_funcao:
+    TK_ID TK_SETA tipo lista_opicional_parametros TK_ATRIB
+; /* 
+O cabecalho consiste no token TK_ID 
+seguido do token TK_SETA 
+seguido ou do token TK_DECIMAL ou do token TK_INTEIRO, 
+seguido por uma lista opcional de parametros 
+seguido do token TK_ATRIB. 
+*/
+
+lista_opicional_parametros:
+    %empty
+    | token_opcional_TK_COM lista_parametros
+; /* 
+A lista de parametros, quando presente, 
+consiste no token opcional TK_COM seguido de uma lista, 
+separada por virgula, de parametros. 
+*/
+token_opcional_TK_COM:
+    %empty
+    | TK_COM
 ;
 
-element_list:
-    element
-    | element_list TK_VIRGULA element
+lista_parametros:
+    parametro
+    | lista_parametros ',' parametro
 ;
 
-element:
-    funcao_definicao
-    | variavel_declaracao_global
-;
+parametro:
+    TK_ID TK_ATRIB tipo
+; /* 
+Cada parametro consiste no token TK_ID
+seguido do token TK_ATRIB 
+seguido ou do token TK_INTEIRO ou do token TK_DECIMAL.
+*/
 
-// Declaracao de variaveis
-variavel_declaracao_global: // Sem inicialização
+corpo_funcao:
+    bloco_comandos 
+; // O corpo eh um bloco de comandos 
+
+// ==========  Declaracao de variaveis  ==========
+/* declaracao_variavel: // Sem inicialização
     TK_VAR TK_ID TK_ATRIB tipo
 ;
 
@@ -67,7 +121,7 @@ tipo:
 ;
 
 inicializacao_opt:
-    /* vazio */
+    %empty
     | TK_COM literal
 ;
 
@@ -76,41 +130,13 @@ literal:
     | TK_LI_DECIMAL
 ;
 
-// Definicao de funcao
-
-funcao_definicao:
-    cabecalho_funcao corpo_funcao
-;
-
-cabecalho_funcao:
-    TK_ID TK_SETA tipo param_list_opt TK_ATRIB
-;
-
-param_list_opt:
-    /* vazio */
-    | TK_COM param_list
-;
-
-param_list:
-    parametro
-    | param_list TK_VIRGULA parametro
-;
-
-parametro:
-    TK_ID TK_ATRIB tipo
-;
-
-corpo_funcao:
-    bloco_comandos // O corpo é um bloco de comandos
-;
-
-// Comandos
+// ==========  Comandos  ==========
 bloco_comandos:
     TK_ABRE_COLCHETE comando_simples_list_opt TK_FECHA_COLCHETE
 ;
 
 comando_simples_list_opt:
-    /* vazio */
+    %empty
     | comando_simples_list
 ;
 
@@ -128,15 +154,13 @@ comando_simples:
     | comando_iterativo
     | bloco_comandos // Um bloco também é um comando simples [cite: 45]
 ;
-
+*/
 %%
 
 // yylineno é uma variável global que o Flex (scanner.l) mantém com o número da linha atual
 extern int yylineno;
  
-/**
- * Função chamada pelo yyparse ao encontrar um erro sintático.
- */
+// Função chamada pelo yyparse ao encontrar um erro sintático.
 void yyerror (char const *mensagem)
 {
     // Imprime uma mensagem de erro para a saida informando a linha onde o erro ocorreu e a mensagem do parser.

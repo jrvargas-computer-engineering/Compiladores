@@ -42,3 +42,11 @@ parser.tab.c: parser.y
 
 run: 
 	./etapa2 < $(TEST_FILE) ; echo $?
+
+# run em todos os arquivos da pasta tests
+run_all:
+	for file in test/*.txt; do \
+		echo "Running test: $$file"; \
+		./etapa2 < $$file ; \
+		echo ""; \
+	done

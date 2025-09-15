@@ -1,21 +1,6 @@
 Terminals unused in grammar
 
     TK_TIPO
-    TK_VAR
-    TK_SENAO
-    TK_SE
-    TK_ATRIB
-    TK_RETORNA
-    TK_SETA
-    TK_ENQUANTO
-    TK_COM
-    TK_OC_LE
-    TK_OC_GE
-    TK_OC_EQ
-    TK_OC_NE
-    TK_ID
-    TK_LI_INTEIRO
-    TK_LI_DECIMAL
     TK_ER
 
 
@@ -23,139 +8,1757 @@ Grammar
 
     0 $accept: programa $end
 
-    1 programa: lista ';'
-    2         | ε
+    1 programa: ε
+    2         | lista_elementos ';'
 
-    3 lista: elemento
-    4      | lista ',' elemento
+    3 lista_elementos: elemento
+    4                | lista_elementos ',' elemento
 
-    5 elemento: TK_INTEIRO ',' TK_DECIMAL
+    5 elemento: definicao_funcao
+    6         | declaracao_variavel_s_ini
+
+    7 definicao_funcao: cabecalho_funcao corpo_funcao
+
+    8 cabecalho_funcao: TK_ID TK_SETA tipo lista_opicional_parametros TK_ATRIB
+
+    9 lista_opicional_parametros: ε
+   10                           | TK_COM lista_parametros
+   11                           | lista_parametros
+
+   12 lista_parametros: parametro
+   13                 | lista_parametros ',' parametro
+
+   14 parametro: TK_ID TK_ATRIB tipo
+
+   15 corpo_funcao: bloco_comandos
+
+   16 declaracao_variavel_s_ini: TK_VAR TK_ID TK_ATRIB tipo
+
+   17 tipo: TK_DECIMAL
+   18     | TK_INTEIRO
+
+   19 declaracao_variavel_c_ini_opcional: TK_VAR TK_ID TK_ATRIB TK_INTEIRO inicializacao_inteiro_opcional
+   20                                   | TK_VAR TK_ID TK_ATRIB TK_DECIMAL inicializacao_decimal_opcional
+
+   21 inicializacao_inteiro_opcional: ε
+   22                               | TK_COM TK_LI_INTEIRO
+
+   23 inicializacao_decimal_opcional: ε
+   24                               | TK_COM TK_LI_DECIMAL
+   25                               | TK_COM TK_LI_INTEIRO
+
+   26 literal: TK_LI_INTEIRO
+   27        | TK_LI_DECIMAL
+
+   28 comando_simples: bloco_comandos
+   29                | declaracao_variavel_c_ini_opcional
+   30                | comando_atribuicao
+   31                | chamada_funcao
+   32                | comando_retorno
+   33                | construcoes_fluxo_controle
+
+   34 bloco_comandos: '[' lista_comando_simples_opicionais ']'
+
+   35 lista_comando_simples_opicionais: ε
+   36                                 | lista_comando_simples
+
+   37 lista_comando_simples: comando_simples
+   38                      | lista_comando_simples comando_simples
+
+   39 comando_atribuicao: TK_ID TK_ATRIB expressao
+
+   40 chamada_funcao: TK_ID '(' lista_argumentos_opcional ')'
+
+   41 lista_argumentos_opcional: ε
+   42                          | lista_argumentos
+
+   43 lista_argumentos: expressao
+   44                 | lista_argumentos ',' expressao
+
+   45 comando_retorno: TK_RETORNA expressao TK_ATRIB tipo
+
+   46 construcoes_fluxo_controle: comando_condicional
+   47                           | comando_enquanto
+
+   48 comando_condicional: TK_SE '(' expressao ')' bloco_comandos senao_opcional
+
+   49 senao_opcional: ε
+   50               | TK_SENAO bloco_comandos
+
+   51 comando_enquanto: TK_ENQUANTO '(' expressao ')' bloco_comandos
+
+   52 expressao: expr_nivel7
+
+   53 expr_nivel7: expr_nivel7 '|' expr_nivel6
+   54            | expr_nivel6
+
+   55 expr_nivel6: expr_nivel6 '&' expr_nivel5
+   56            | expr_nivel5
+
+   57 expr_nivel5: expr_nivel5 TK_OC_EQ expr_nivel4
+   58            | expr_nivel5 TK_OC_NE expr_nivel4
+   59            | expr_nivel4
+
+   60 expr_nivel4: expr_nivel4 '<' expr_nivel3
+   61            | expr_nivel4 '>' expr_nivel3
+   62            | expr_nivel4 TK_OC_LE expr_nivel3
+   63            | expr_nivel4 TK_OC_GE expr_nivel3
+   64            | expr_nivel3
+
+   65 expr_nivel3: expr_nivel3 '+' expr_nivel2
+   66            | expr_nivel3 '-' expr_nivel2
+   67            | expr_nivel2
+
+   68 expr_nivel2: expr_nivel2 '*' expr_nivel1
+   69            | expr_nivel2 '/' expr_nivel1
+   70            | expr_nivel2 '%' expr_nivel1
+   71            | expr_nivel1
+
+   72 expr_nivel1: '+' expr_nivel1
+   73            | '-' expr_nivel1
+   74            | '!' expr_nivel1
+   75            | fator
+
+   76 fator: TK_ID
+   77      | literal
+   78      | chamada_funcao
+   79      | '(' expressao ')'
 
 
 Terminals, with rules where they appear
 
     $end (0) 0
-    ',' (44) 4 5
-    ';' (59) 1
+    '!' (33) 74
+    '%' (37) 70
+    '&' (38) 55
+    '(' (40) 40 48 51 79
+    ')' (41) 40 48 51 79
+    '*' (42) 68
+    '+' (43) 65 72
+    ',' (44) 4 13 44
+    '-' (45) 66 73
+    '/' (47) 69
+    ';' (59) 2
+    '<' (60) 60
+    '>' (62) 61
+    '[' (91) 34
+    ']' (93) 34
+    '|' (124) 53
     error (256)
     TK_TIPO (258)
-    TK_VAR (259)
-    TK_SENAO (260)
-    TK_DECIMAL (261) 5
-    TK_SE (262)
-    TK_INTEIRO (263) 5
-    TK_ATRIB (264)
-    TK_RETORNA (265)
-    TK_SETA (266)
-    TK_ENQUANTO (267)
-    TK_COM (268)
-    TK_OC_LE (269)
-    TK_OC_GE (270)
-    TK_OC_EQ (271)
-    TK_OC_NE (272)
-    TK_ID (273)
-    TK_LI_INTEIRO (274)
-    TK_LI_DECIMAL (275)
+    TK_VAR (259) 16 19 20
+    TK_SENAO (260) 50
+    TK_DECIMAL (261) 17 20
+    TK_SE (262) 48
+    TK_INTEIRO (263) 18 19
+    TK_ATRIB (264) 8 14 16 19 20 39 45
+    TK_RETORNA (265) 45
+    TK_SETA (266) 8
+    TK_ENQUANTO (267) 51
+    TK_COM (268) 10 22 24 25
+    TK_OC_LE (269) 62
+    TK_OC_GE (270) 63
+    TK_OC_EQ (271) 57
+    TK_OC_NE (272) 58
+    TK_ID (273) 8 14 16 19 20 39 40 76
+    TK_LI_INTEIRO (274) 22 25 26
+    TK_LI_DECIMAL (275) 24 27
     TK_ER (276)
 
 
 Nonterminals, with rules where they appear
 
-    $accept (24)
+    $accept (38)
         on left: 0
-    programa (25)
+    programa (39)
         on left: 1 2
         on right: 0
-    lista (26)
+    lista_elementos (40)
         on left: 3 4
-        on right: 1 4
-    elemento (27)
-        on left: 5
+        on right: 2 4
+    elemento (41)
+        on left: 5 6
         on right: 3 4
+    definicao_funcao (42)
+        on left: 7
+        on right: 5
+    cabecalho_funcao (43)
+        on left: 8
+        on right: 7
+    lista_opicional_parametros (44)
+        on left: 9 10 11
+        on right: 8
+    lista_parametros (45)
+        on left: 12 13
+        on right: 10 11 13
+    parametro (46)
+        on left: 14
+        on right: 12 13
+    corpo_funcao (47)
+        on left: 15
+        on right: 7
+    declaracao_variavel_s_ini (48)
+        on left: 16
+        on right: 6
+    tipo (49)
+        on left: 17 18
+        on right: 8 14 16 45
+    declaracao_variavel_c_ini_opcional (50)
+        on left: 19 20
+        on right: 29
+    inicializacao_inteiro_opcional (51)
+        on left: 21 22
+        on right: 19
+    inicializacao_decimal_opcional (52)
+        on left: 23 24 25
+        on right: 20
+    literal (53)
+        on left: 26 27
+        on right: 77
+    comando_simples (54)
+        on left: 28 29 30 31 32 33
+        on right: 37 38
+    bloco_comandos (55)
+        on left: 34
+        on right: 15 28 48 50 51
+    lista_comando_simples_opicionais (56)
+        on left: 35 36
+        on right: 34
+    lista_comando_simples (57)
+        on left: 37 38
+        on right: 36 38
+    comando_atribuicao (58)
+        on left: 39
+        on right: 30
+    chamada_funcao (59)
+        on left: 40
+        on right: 31 78
+    lista_argumentos_opcional (60)
+        on left: 41 42
+        on right: 40
+    lista_argumentos (61)
+        on left: 43 44
+        on right: 42 44
+    comando_retorno (62)
+        on left: 45
+        on right: 32
+    construcoes_fluxo_controle (63)
+        on left: 46 47
+        on right: 33
+    comando_condicional (64)
+        on left: 48
+        on right: 46
+    senao_opcional (65)
+        on left: 49 50
+        on right: 48
+    comando_enquanto (66)
+        on left: 51
+        on right: 47
+    expressao (67)
+        on left: 52
+        on right: 39 43 44 45 48 51 79
+    expr_nivel7 (68)
+        on left: 53 54
+        on right: 52 53
+    expr_nivel6 (69)
+        on left: 55 56
+        on right: 53 54 55
+    expr_nivel5 (70)
+        on left: 57 58 59
+        on right: 55 56 57 58
+    expr_nivel4 (71)
+        on left: 60 61 62 63 64
+        on right: 57 58 59 60 61 62 63
+    expr_nivel3 (72)
+        on left: 65 66 67
+        on right: 60 61 62 63 64 65 66
+    expr_nivel2 (73)
+        on left: 68 69 70 71
+        on right: 65 66 67 68 69 70
+    expr_nivel1 (74)
+        on left: 72 73 74 75
+        on right: 68 69 70 71 72 73 74
+    fator (75)
+        on left: 76 77 78 79
+        on right: 75
 
 
 State 0
 
     0 $accept: • programa $end
 
-    TK_INTEIRO  shift, and go to state 1
+    TK_VAR  shift, and go to state 1
+    TK_ID   shift, and go to state 2
 
-    $default  reduce using rule 2 (programa)
+    $default  reduce using rule 1 (programa)
 
-    programa  go to state 2
-    lista     go to state 3
-    elemento  go to state 4
+    programa                   go to state 3
+    lista_elementos            go to state 4
+    elemento                   go to state 5
+    definicao_funcao           go to state 6
+    cabecalho_funcao           go to state 7
+    declaracao_variavel_s_ini  go to state 8
 
 
 State 1
 
-    5 elemento: TK_INTEIRO • ',' TK_DECIMAL
+   16 declaracao_variavel_s_ini: TK_VAR • TK_ID TK_ATRIB tipo
 
-    ','  shift, and go to state 5
+    TK_ID  shift, and go to state 9
 
 
 State 2
 
-    0 $accept: programa • $end
+    8 cabecalho_funcao: TK_ID • TK_SETA tipo lista_opicional_parametros TK_ATRIB
 
-    $end  shift, and go to state 6
+    TK_SETA  shift, and go to state 10
 
 
 State 3
 
-    1 programa: lista • ';'
-    4 lista: lista • ',' elemento
+    0 $accept: programa • $end
 
-    ';'  shift, and go to state 7
-    ','  shift, and go to state 8
+    $end  shift, and go to state 11
 
 
 State 4
 
-    3 lista: elemento •
+    2 programa: lista_elementos • ';'
+    4 lista_elementos: lista_elementos • ',' elemento
 
-    $default  reduce using rule 3 (lista)
+    ';'  shift, and go to state 12
+    ','  shift, and go to state 13
 
 
 State 5
 
-    5 elemento: TK_INTEIRO ',' • TK_DECIMAL
+    3 lista_elementos: elemento •
 
-    TK_DECIMAL  shift, and go to state 9
+    $default  reduce using rule 3 (lista_elementos)
 
 
 State 6
+
+    5 elemento: definicao_funcao •
+
+    $default  reduce using rule 5 (elemento)
+
+
+State 7
+
+    7 definicao_funcao: cabecalho_funcao • corpo_funcao
+
+    '['  shift, and go to state 14
+
+    corpo_funcao    go to state 15
+    bloco_comandos  go to state 16
+
+
+State 8
+
+    6 elemento: declaracao_variavel_s_ini •
+
+    $default  reduce using rule 6 (elemento)
+
+
+State 9
+
+   16 declaracao_variavel_s_ini: TK_VAR TK_ID • TK_ATRIB tipo
+
+    TK_ATRIB  shift, and go to state 17
+
+
+State 10
+
+    8 cabecalho_funcao: TK_ID TK_SETA • tipo lista_opicional_parametros TK_ATRIB
+
+    TK_DECIMAL  shift, and go to state 18
+    TK_INTEIRO  shift, and go to state 19
+
+    tipo  go to state 20
+
+
+State 11
 
     0 $accept: programa $end •
 
     $default  accept
 
 
-State 7
+State 12
 
-    1 programa: lista ';' •
+    2 programa: lista_elementos ';' •
 
-    $default  reduce using rule 1 (programa)
-
-
-State 8
-
-    4 lista: lista ',' • elemento
-
-    TK_INTEIRO  shift, and go to state 1
-
-    elemento  go to state 10
+    $default  reduce using rule 2 (programa)
 
 
-State 9
+State 13
 
-    5 elemento: TK_INTEIRO ',' TK_DECIMAL •
+    4 lista_elementos: lista_elementos ',' • elemento
 
-    $default  reduce using rule 5 (elemento)
+    TK_VAR  shift, and go to state 1
+    TK_ID   shift, and go to state 2
+
+    elemento                   go to state 21
+    definicao_funcao           go to state 6
+    cabecalho_funcao           go to state 7
+    declaracao_variavel_s_ini  go to state 8
 
 
-State 10
+State 14
 
-    4 lista: lista ',' elemento •
+   34 bloco_comandos: '[' • lista_comando_simples_opicionais ']'
 
-    $default  reduce using rule 4 (lista)
+    TK_VAR       shift, and go to state 22
+    TK_SE        shift, and go to state 23
+    TK_RETORNA   shift, and go to state 24
+    TK_ENQUANTO  shift, and go to state 25
+    TK_ID        shift, and go to state 26
+    '['          shift, and go to state 14
+
+    $default  reduce using rule 35 (lista_comando_simples_opicionais)
+
+    declaracao_variavel_c_ini_opcional  go to state 27
+    comando_simples                     go to state 28
+    bloco_comandos                      go to state 29
+    lista_comando_simples_opicionais    go to state 30
+    lista_comando_simples               go to state 31
+    comando_atribuicao                  go to state 32
+    chamada_funcao                      go to state 33
+    comando_retorno                     go to state 34
+    construcoes_fluxo_controle          go to state 35
+    comando_condicional                 go to state 36
+    comando_enquanto                    go to state 37
+
+
+State 15
+
+    7 definicao_funcao: cabecalho_funcao corpo_funcao •
+
+    $default  reduce using rule 7 (definicao_funcao)
+
+
+State 16
+
+   15 corpo_funcao: bloco_comandos •
+
+    $default  reduce using rule 15 (corpo_funcao)
+
+
+State 17
+
+   16 declaracao_variavel_s_ini: TK_VAR TK_ID TK_ATRIB • tipo
+
+    TK_DECIMAL  shift, and go to state 18
+    TK_INTEIRO  shift, and go to state 19
+
+    tipo  go to state 38
+
+
+State 18
+
+   17 tipo: TK_DECIMAL •
+
+    $default  reduce using rule 17 (tipo)
+
+
+State 19
+
+   18 tipo: TK_INTEIRO •
+
+    $default  reduce using rule 18 (tipo)
+
+
+State 20
+
+    8 cabecalho_funcao: TK_ID TK_SETA tipo • lista_opicional_parametros TK_ATRIB
+
+    TK_COM  shift, and go to state 39
+    TK_ID   shift, and go to state 40
+
+    $default  reduce using rule 9 (lista_opicional_parametros)
+
+    lista_opicional_parametros  go to state 41
+    lista_parametros            go to state 42
+    parametro                   go to state 43
+
+
+State 21
+
+    4 lista_elementos: lista_elementos ',' elemento •
+
+    $default  reduce using rule 4 (lista_elementos)
+
+
+State 22
+
+   19 declaracao_variavel_c_ini_opcional: TK_VAR • TK_ID TK_ATRIB TK_INTEIRO inicializacao_inteiro_opcional
+   20                                   | TK_VAR • TK_ID TK_ATRIB TK_DECIMAL inicializacao_decimal_opcional
+
+    TK_ID  shift, and go to state 44
+
+
+State 23
+
+   48 comando_condicional: TK_SE • '(' expressao ')' bloco_comandos senao_opcional
+
+    '('  shift, and go to state 45
+
+
+State 24
+
+   45 comando_retorno: TK_RETORNA • expressao TK_ATRIB tipo
+
+    TK_ID          shift, and go to state 46
+    TK_LI_INTEIRO  shift, and go to state 47
+    TK_LI_DECIMAL  shift, and go to state 48
+    '('            shift, and go to state 49
+    '+'            shift, and go to state 50
+    '-'            shift, and go to state 51
+    '!'            shift, and go to state 52
+
+    literal         go to state 53
+    chamada_funcao  go to state 54
+    expressao       go to state 55
+    expr_nivel7     go to state 56
+    expr_nivel6     go to state 57
+    expr_nivel5     go to state 58
+    expr_nivel4     go to state 59
+    expr_nivel3     go to state 60
+    expr_nivel2     go to state 61
+    expr_nivel1     go to state 62
+    fator           go to state 63
+
+
+State 25
+
+   51 comando_enquanto: TK_ENQUANTO • '(' expressao ')' bloco_comandos
+
+    '('  shift, and go to state 64
+
+
+State 26
+
+   39 comando_atribuicao: TK_ID • TK_ATRIB expressao
+   40 chamada_funcao: TK_ID • '(' lista_argumentos_opcional ')'
+
+    TK_ATRIB  shift, and go to state 65
+    '('       shift, and go to state 66
+
+
+State 27
+
+   29 comando_simples: declaracao_variavel_c_ini_opcional •
+
+    $default  reduce using rule 29 (comando_simples)
+
+
+State 28
+
+   37 lista_comando_simples: comando_simples •
+
+    $default  reduce using rule 37 (lista_comando_simples)
+
+
+State 29
+
+   28 comando_simples: bloco_comandos •
+
+    $default  reduce using rule 28 (comando_simples)
+
+
+State 30
+
+   34 bloco_comandos: '[' lista_comando_simples_opicionais • ']'
+
+    ']'  shift, and go to state 67
+
+
+State 31
+
+   36 lista_comando_simples_opicionais: lista_comando_simples •
+   38 lista_comando_simples: lista_comando_simples • comando_simples
+
+    TK_VAR       shift, and go to state 22
+    TK_SE        shift, and go to state 23
+    TK_RETORNA   shift, and go to state 24
+    TK_ENQUANTO  shift, and go to state 25
+    TK_ID        shift, and go to state 26
+    '['          shift, and go to state 14
+
+    $default  reduce using rule 36 (lista_comando_simples_opicionais)
+
+    declaracao_variavel_c_ini_opcional  go to state 27
+    comando_simples                     go to state 68
+    bloco_comandos                      go to state 29
+    comando_atribuicao                  go to state 32
+    chamada_funcao                      go to state 33
+    comando_retorno                     go to state 34
+    construcoes_fluxo_controle          go to state 35
+    comando_condicional                 go to state 36
+    comando_enquanto                    go to state 37
+
+
+State 32
+
+   30 comando_simples: comando_atribuicao •
+
+    $default  reduce using rule 30 (comando_simples)
+
+
+State 33
+
+   31 comando_simples: chamada_funcao •
+
+    $default  reduce using rule 31 (comando_simples)
+
+
+State 34
+
+   32 comando_simples: comando_retorno •
+
+    $default  reduce using rule 32 (comando_simples)
+
+
+State 35
+
+   33 comando_simples: construcoes_fluxo_controle •
+
+    $default  reduce using rule 33 (comando_simples)
+
+
+State 36
+
+   46 construcoes_fluxo_controle: comando_condicional •
+
+    $default  reduce using rule 46 (construcoes_fluxo_controle)
+
+
+State 37
+
+   47 construcoes_fluxo_controle: comando_enquanto •
+
+    $default  reduce using rule 47 (construcoes_fluxo_controle)
+
+
+State 38
+
+   16 declaracao_variavel_s_ini: TK_VAR TK_ID TK_ATRIB tipo •
+
+    $default  reduce using rule 16 (declaracao_variavel_s_ini)
+
+
+State 39
+
+   10 lista_opicional_parametros: TK_COM • lista_parametros
+
+    TK_ID  shift, and go to state 40
+
+    lista_parametros  go to state 69
+    parametro         go to state 43
+
+
+State 40
+
+   14 parametro: TK_ID • TK_ATRIB tipo
+
+    TK_ATRIB  shift, and go to state 70
+
+
+State 41
+
+    8 cabecalho_funcao: TK_ID TK_SETA tipo lista_opicional_parametros • TK_ATRIB
+
+    TK_ATRIB  shift, and go to state 71
+
+
+State 42
+
+   11 lista_opicional_parametros: lista_parametros •
+   13 lista_parametros: lista_parametros • ',' parametro
+
+    ','  shift, and go to state 72
+
+    $default  reduce using rule 11 (lista_opicional_parametros)
+
+
+State 43
+
+   12 lista_parametros: parametro •
+
+    $default  reduce using rule 12 (lista_parametros)
+
+
+State 44
+
+   19 declaracao_variavel_c_ini_opcional: TK_VAR TK_ID • TK_ATRIB TK_INTEIRO inicializacao_inteiro_opcional
+   20                                   | TK_VAR TK_ID • TK_ATRIB TK_DECIMAL inicializacao_decimal_opcional
+
+    TK_ATRIB  shift, and go to state 73
+
+
+State 45
+
+   48 comando_condicional: TK_SE '(' • expressao ')' bloco_comandos senao_opcional
+
+    TK_ID          shift, and go to state 46
+    TK_LI_INTEIRO  shift, and go to state 47
+    TK_LI_DECIMAL  shift, and go to state 48
+    '('            shift, and go to state 49
+    '+'            shift, and go to state 50
+    '-'            shift, and go to state 51
+    '!'            shift, and go to state 52
+
+    literal         go to state 53
+    chamada_funcao  go to state 54
+    expressao       go to state 74
+    expr_nivel7     go to state 56
+    expr_nivel6     go to state 57
+    expr_nivel5     go to state 58
+    expr_nivel4     go to state 59
+    expr_nivel3     go to state 60
+    expr_nivel2     go to state 61
+    expr_nivel1     go to state 62
+    fator           go to state 63
+
+
+State 46
+
+   40 chamada_funcao: TK_ID • '(' lista_argumentos_opcional ')'
+   76 fator: TK_ID •
+
+    '('  shift, and go to state 66
+
+    $default  reduce using rule 76 (fator)
+
+
+State 47
+
+   26 literal: TK_LI_INTEIRO •
+
+    $default  reduce using rule 26 (literal)
+
+
+State 48
+
+   27 literal: TK_LI_DECIMAL •
+
+    $default  reduce using rule 27 (literal)
+
+
+State 49
+
+   79 fator: '(' • expressao ')'
+
+    TK_ID          shift, and go to state 46
+    TK_LI_INTEIRO  shift, and go to state 47
+    TK_LI_DECIMAL  shift, and go to state 48
+    '('            shift, and go to state 49
+    '+'            shift, and go to state 50
+    '-'            shift, and go to state 51
+    '!'            shift, and go to state 52
+
+    literal         go to state 53
+    chamada_funcao  go to state 54
+    expressao       go to state 75
+    expr_nivel7     go to state 56
+    expr_nivel6     go to state 57
+    expr_nivel5     go to state 58
+    expr_nivel4     go to state 59
+    expr_nivel3     go to state 60
+    expr_nivel2     go to state 61
+    expr_nivel1     go to state 62
+    fator           go to state 63
+
+
+State 50
+
+   72 expr_nivel1: '+' • expr_nivel1
+
+    TK_ID          shift, and go to state 46
+    TK_LI_INTEIRO  shift, and go to state 47
+    TK_LI_DECIMAL  shift, and go to state 48
+    '('            shift, and go to state 49
+    '+'            shift, and go to state 50
+    '-'            shift, and go to state 51
+    '!'            shift, and go to state 52
+
+    literal         go to state 53
+    chamada_funcao  go to state 54
+    expr_nivel1     go to state 76
+    fator           go to state 63
+
+
+State 51
+
+   73 expr_nivel1: '-' • expr_nivel1
+
+    TK_ID          shift, and go to state 46
+    TK_LI_INTEIRO  shift, and go to state 47
+    TK_LI_DECIMAL  shift, and go to state 48
+    '('            shift, and go to state 49
+    '+'            shift, and go to state 50
+    '-'            shift, and go to state 51
+    '!'            shift, and go to state 52
+
+    literal         go to state 53
+    chamada_funcao  go to state 54
+    expr_nivel1     go to state 77
+    fator           go to state 63
+
+
+State 52
+
+   74 expr_nivel1: '!' • expr_nivel1
+
+    TK_ID          shift, and go to state 46
+    TK_LI_INTEIRO  shift, and go to state 47
+    TK_LI_DECIMAL  shift, and go to state 48
+    '('            shift, and go to state 49
+    '+'            shift, and go to state 50
+    '-'            shift, and go to state 51
+    '!'            shift, and go to state 52
+
+    literal         go to state 53
+    chamada_funcao  go to state 54
+    expr_nivel1     go to state 78
+    fator           go to state 63
+
+
+State 53
+
+   77 fator: literal •
+
+    $default  reduce using rule 77 (fator)
+
+
+State 54
+
+   78 fator: chamada_funcao •
+
+    $default  reduce using rule 78 (fator)
+
+
+State 55
+
+   45 comando_retorno: TK_RETORNA expressao • TK_ATRIB tipo
+
+    TK_ATRIB  shift, and go to state 79
+
+
+State 56
+
+   52 expressao: expr_nivel7 •
+   53 expr_nivel7: expr_nivel7 • '|' expr_nivel6
+
+    '|'  shift, and go to state 80
+
+    $default  reduce using rule 52 (expressao)
+
+
+State 57
+
+   54 expr_nivel7: expr_nivel6 •
+   55 expr_nivel6: expr_nivel6 • '&' expr_nivel5
+
+    '&'  shift, and go to state 81
+
+    $default  reduce using rule 54 (expr_nivel7)
+
+
+State 58
+
+   56 expr_nivel6: expr_nivel5 •
+   57 expr_nivel5: expr_nivel5 • TK_OC_EQ expr_nivel4
+   58            | expr_nivel5 • TK_OC_NE expr_nivel4
+
+    TK_OC_EQ  shift, and go to state 82
+    TK_OC_NE  shift, and go to state 83
+
+    $default  reduce using rule 56 (expr_nivel6)
+
+
+State 59
+
+   59 expr_nivel5: expr_nivel4 •
+   60 expr_nivel4: expr_nivel4 • '<' expr_nivel3
+   61            | expr_nivel4 • '>' expr_nivel3
+   62            | expr_nivel4 • TK_OC_LE expr_nivel3
+   63            | expr_nivel4 • TK_OC_GE expr_nivel3
+
+    TK_OC_LE  shift, and go to state 84
+    TK_OC_GE  shift, and go to state 85
+    '<'       shift, and go to state 86
+    '>'       shift, and go to state 87
+
+    $default  reduce using rule 59 (expr_nivel5)
+
+
+State 60
+
+   64 expr_nivel4: expr_nivel3 •
+   65 expr_nivel3: expr_nivel3 • '+' expr_nivel2
+   66            | expr_nivel3 • '-' expr_nivel2
+
+    '+'  shift, and go to state 88
+    '-'  shift, and go to state 89
+
+    $default  reduce using rule 64 (expr_nivel4)
+
+
+State 61
+
+   67 expr_nivel3: expr_nivel2 •
+   68 expr_nivel2: expr_nivel2 • '*' expr_nivel1
+   69            | expr_nivel2 • '/' expr_nivel1
+   70            | expr_nivel2 • '%' expr_nivel1
+
+    '*'  shift, and go to state 90
+    '/'  shift, and go to state 91
+    '%'  shift, and go to state 92
+
+    $default  reduce using rule 67 (expr_nivel3)
+
+
+State 62
+
+   71 expr_nivel2: expr_nivel1 •
+
+    $default  reduce using rule 71 (expr_nivel2)
+
+
+State 63
+
+   75 expr_nivel1: fator •
+
+    $default  reduce using rule 75 (expr_nivel1)
+
+
+State 64
+
+   51 comando_enquanto: TK_ENQUANTO '(' • expressao ')' bloco_comandos
+
+    TK_ID          shift, and go to state 46
+    TK_LI_INTEIRO  shift, and go to state 47
+    TK_LI_DECIMAL  shift, and go to state 48
+    '('            shift, and go to state 49
+    '+'            shift, and go to state 50
+    '-'            shift, and go to state 51
+    '!'            shift, and go to state 52
+
+    literal         go to state 53
+    chamada_funcao  go to state 54
+    expressao       go to state 93
+    expr_nivel7     go to state 56
+    expr_nivel6     go to state 57
+    expr_nivel5     go to state 58
+    expr_nivel4     go to state 59
+    expr_nivel3     go to state 60
+    expr_nivel2     go to state 61
+    expr_nivel1     go to state 62
+    fator           go to state 63
+
+
+State 65
+
+   39 comando_atribuicao: TK_ID TK_ATRIB • expressao
+
+    TK_ID          shift, and go to state 46
+    TK_LI_INTEIRO  shift, and go to state 47
+    TK_LI_DECIMAL  shift, and go to state 48
+    '('            shift, and go to state 49
+    '+'            shift, and go to state 50
+    '-'            shift, and go to state 51
+    '!'            shift, and go to state 52
+
+    literal         go to state 53
+    chamada_funcao  go to state 54
+    expressao       go to state 94
+    expr_nivel7     go to state 56
+    expr_nivel6     go to state 57
+    expr_nivel5     go to state 58
+    expr_nivel4     go to state 59
+    expr_nivel3     go to state 60
+    expr_nivel2     go to state 61
+    expr_nivel1     go to state 62
+    fator           go to state 63
+
+
+State 66
+
+   40 chamada_funcao: TK_ID '(' • lista_argumentos_opcional ')'
+
+    TK_ID          shift, and go to state 46
+    TK_LI_INTEIRO  shift, and go to state 47
+    TK_LI_DECIMAL  shift, and go to state 48
+    '('            shift, and go to state 49
+    '+'            shift, and go to state 50
+    '-'            shift, and go to state 51
+    '!'            shift, and go to state 52
+
+    $default  reduce using rule 41 (lista_argumentos_opcional)
+
+    literal                    go to state 53
+    chamada_funcao             go to state 54
+    lista_argumentos_opcional  go to state 95
+    lista_argumentos           go to state 96
+    expressao                  go to state 97
+    expr_nivel7                go to state 56
+    expr_nivel6                go to state 57
+    expr_nivel5                go to state 58
+    expr_nivel4                go to state 59
+    expr_nivel3                go to state 60
+    expr_nivel2                go to state 61
+    expr_nivel1                go to state 62
+    fator                      go to state 63
+
+
+State 67
+
+   34 bloco_comandos: '[' lista_comando_simples_opicionais ']' •
+
+    $default  reduce using rule 34 (bloco_comandos)
+
+
+State 68
+
+   38 lista_comando_simples: lista_comando_simples comando_simples •
+
+    $default  reduce using rule 38 (lista_comando_simples)
+
+
+State 69
+
+   10 lista_opicional_parametros: TK_COM lista_parametros •
+   13 lista_parametros: lista_parametros • ',' parametro
+
+    ','  shift, and go to state 72
+
+    $default  reduce using rule 10 (lista_opicional_parametros)
+
+
+State 70
+
+   14 parametro: TK_ID TK_ATRIB • tipo
+
+    TK_DECIMAL  shift, and go to state 18
+    TK_INTEIRO  shift, and go to state 19
+
+    tipo  go to state 98
+
+
+State 71
+
+    8 cabecalho_funcao: TK_ID TK_SETA tipo lista_opicional_parametros TK_ATRIB •
+
+    $default  reduce using rule 8 (cabecalho_funcao)
+
+
+State 72
+
+   13 lista_parametros: lista_parametros ',' • parametro
+
+    TK_ID  shift, and go to state 40
+
+    parametro  go to state 99
+
+
+State 73
+
+   19 declaracao_variavel_c_ini_opcional: TK_VAR TK_ID TK_ATRIB • TK_INTEIRO inicializacao_inteiro_opcional
+   20                                   | TK_VAR TK_ID TK_ATRIB • TK_DECIMAL inicializacao_decimal_opcional
+
+    TK_DECIMAL  shift, and go to state 100
+    TK_INTEIRO  shift, and go to state 101
+
+
+State 74
+
+   48 comando_condicional: TK_SE '(' expressao • ')' bloco_comandos senao_opcional
+
+    ')'  shift, and go to state 102
+
+
+State 75
+
+   79 fator: '(' expressao • ')'
+
+    ')'  shift, and go to state 103
+
+
+State 76
+
+   72 expr_nivel1: '+' expr_nivel1 •
+
+    $default  reduce using rule 72 (expr_nivel1)
+
+
+State 77
+
+   73 expr_nivel1: '-' expr_nivel1 •
+
+    $default  reduce using rule 73 (expr_nivel1)
+
+
+State 78
+
+   74 expr_nivel1: '!' expr_nivel1 •
+
+    $default  reduce using rule 74 (expr_nivel1)
+
+
+State 79
+
+   45 comando_retorno: TK_RETORNA expressao TK_ATRIB • tipo
+
+    TK_DECIMAL  shift, and go to state 18
+    TK_INTEIRO  shift, and go to state 19
+
+    tipo  go to state 104
+
+
+State 80
+
+   53 expr_nivel7: expr_nivel7 '|' • expr_nivel6
+
+    TK_ID          shift, and go to state 46
+    TK_LI_INTEIRO  shift, and go to state 47
+    TK_LI_DECIMAL  shift, and go to state 48
+    '('            shift, and go to state 49
+    '+'            shift, and go to state 50
+    '-'            shift, and go to state 51
+    '!'            shift, and go to state 52
+
+    literal         go to state 53
+    chamada_funcao  go to state 54
+    expr_nivel6     go to state 105
+    expr_nivel5     go to state 58
+    expr_nivel4     go to state 59
+    expr_nivel3     go to state 60
+    expr_nivel2     go to state 61
+    expr_nivel1     go to state 62
+    fator           go to state 63
+
+
+State 81
+
+   55 expr_nivel6: expr_nivel6 '&' • expr_nivel5
+
+    TK_ID          shift, and go to state 46
+    TK_LI_INTEIRO  shift, and go to state 47
+    TK_LI_DECIMAL  shift, and go to state 48
+    '('            shift, and go to state 49
+    '+'            shift, and go to state 50
+    '-'            shift, and go to state 51
+    '!'            shift, and go to state 52
+
+    literal         go to state 53
+    chamada_funcao  go to state 54
+    expr_nivel5     go to state 106
+    expr_nivel4     go to state 59
+    expr_nivel3     go to state 60
+    expr_nivel2     go to state 61
+    expr_nivel1     go to state 62
+    fator           go to state 63
+
+
+State 82
+
+   57 expr_nivel5: expr_nivel5 TK_OC_EQ • expr_nivel4
+
+    TK_ID          shift, and go to state 46
+    TK_LI_INTEIRO  shift, and go to state 47
+    TK_LI_DECIMAL  shift, and go to state 48
+    '('            shift, and go to state 49
+    '+'            shift, and go to state 50
+    '-'            shift, and go to state 51
+    '!'            shift, and go to state 52
+
+    literal         go to state 53
+    chamada_funcao  go to state 54
+    expr_nivel4     go to state 107
+    expr_nivel3     go to state 60
+    expr_nivel2     go to state 61
+    expr_nivel1     go to state 62
+    fator           go to state 63
+
+
+State 83
+
+   58 expr_nivel5: expr_nivel5 TK_OC_NE • expr_nivel4
+
+    TK_ID          shift, and go to state 46
+    TK_LI_INTEIRO  shift, and go to state 47
+    TK_LI_DECIMAL  shift, and go to state 48
+    '('            shift, and go to state 49
+    '+'            shift, and go to state 50
+    '-'            shift, and go to state 51
+    '!'            shift, and go to state 52
+
+    literal         go to state 53
+    chamada_funcao  go to state 54
+    expr_nivel4     go to state 108
+    expr_nivel3     go to state 60
+    expr_nivel2     go to state 61
+    expr_nivel1     go to state 62
+    fator           go to state 63
+
+
+State 84
+
+   62 expr_nivel4: expr_nivel4 TK_OC_LE • expr_nivel3
+
+    TK_ID          shift, and go to state 46
+    TK_LI_INTEIRO  shift, and go to state 47
+    TK_LI_DECIMAL  shift, and go to state 48
+    '('            shift, and go to state 49
+    '+'            shift, and go to state 50
+    '-'            shift, and go to state 51
+    '!'            shift, and go to state 52
+
+    literal         go to state 53
+    chamada_funcao  go to state 54
+    expr_nivel3     go to state 109
+    expr_nivel2     go to state 61
+    expr_nivel1     go to state 62
+    fator           go to state 63
+
+
+State 85
+
+   63 expr_nivel4: expr_nivel4 TK_OC_GE • expr_nivel3
+
+    TK_ID          shift, and go to state 46
+    TK_LI_INTEIRO  shift, and go to state 47
+    TK_LI_DECIMAL  shift, and go to state 48
+    '('            shift, and go to state 49
+    '+'            shift, and go to state 50
+    '-'            shift, and go to state 51
+    '!'            shift, and go to state 52
+
+    literal         go to state 53
+    chamada_funcao  go to state 54
+    expr_nivel3     go to state 110
+    expr_nivel2     go to state 61
+    expr_nivel1     go to state 62
+    fator           go to state 63
+
+
+State 86
+
+   60 expr_nivel4: expr_nivel4 '<' • expr_nivel3
+
+    TK_ID          shift, and go to state 46
+    TK_LI_INTEIRO  shift, and go to state 47
+    TK_LI_DECIMAL  shift, and go to state 48
+    '('            shift, and go to state 49
+    '+'            shift, and go to state 50
+    '-'            shift, and go to state 51
+    '!'            shift, and go to state 52
+
+    literal         go to state 53
+    chamada_funcao  go to state 54
+    expr_nivel3     go to state 111
+    expr_nivel2     go to state 61
+    expr_nivel1     go to state 62
+    fator           go to state 63
+
+
+State 87
+
+   61 expr_nivel4: expr_nivel4 '>' • expr_nivel3
+
+    TK_ID          shift, and go to state 46
+    TK_LI_INTEIRO  shift, and go to state 47
+    TK_LI_DECIMAL  shift, and go to state 48
+    '('            shift, and go to state 49
+    '+'            shift, and go to state 50
+    '-'            shift, and go to state 51
+    '!'            shift, and go to state 52
+
+    literal         go to state 53
+    chamada_funcao  go to state 54
+    expr_nivel3     go to state 112
+    expr_nivel2     go to state 61
+    expr_nivel1     go to state 62
+    fator           go to state 63
+
+
+State 88
+
+   65 expr_nivel3: expr_nivel3 '+' • expr_nivel2
+
+    TK_ID          shift, and go to state 46
+    TK_LI_INTEIRO  shift, and go to state 47
+    TK_LI_DECIMAL  shift, and go to state 48
+    '('            shift, and go to state 49
+    '+'            shift, and go to state 50
+    '-'            shift, and go to state 51
+    '!'            shift, and go to state 52
+
+    literal         go to state 53
+    chamada_funcao  go to state 54
+    expr_nivel2     go to state 113
+    expr_nivel1     go to state 62
+    fator           go to state 63
+
+
+State 89
+
+   66 expr_nivel3: expr_nivel3 '-' • expr_nivel2
+
+    TK_ID          shift, and go to state 46
+    TK_LI_INTEIRO  shift, and go to state 47
+    TK_LI_DECIMAL  shift, and go to state 48
+    '('            shift, and go to state 49
+    '+'            shift, and go to state 50
+    '-'            shift, and go to state 51
+    '!'            shift, and go to state 52
+
+    literal         go to state 53
+    chamada_funcao  go to state 54
+    expr_nivel2     go to state 114
+    expr_nivel1     go to state 62
+    fator           go to state 63
+
+
+State 90
+
+   68 expr_nivel2: expr_nivel2 '*' • expr_nivel1
+
+    TK_ID          shift, and go to state 46
+    TK_LI_INTEIRO  shift, and go to state 47
+    TK_LI_DECIMAL  shift, and go to state 48
+    '('            shift, and go to state 49
+    '+'            shift, and go to state 50
+    '-'            shift, and go to state 51
+    '!'            shift, and go to state 52
+
+    literal         go to state 53
+    chamada_funcao  go to state 54
+    expr_nivel1     go to state 115
+    fator           go to state 63
+
+
+State 91
+
+   69 expr_nivel2: expr_nivel2 '/' • expr_nivel1
+
+    TK_ID          shift, and go to state 46
+    TK_LI_INTEIRO  shift, and go to state 47
+    TK_LI_DECIMAL  shift, and go to state 48
+    '('            shift, and go to state 49
+    '+'            shift, and go to state 50
+    '-'            shift, and go to state 51
+    '!'            shift, and go to state 52
+
+    literal         go to state 53
+    chamada_funcao  go to state 54
+    expr_nivel1     go to state 116
+    fator           go to state 63
+
+
+State 92
+
+   70 expr_nivel2: expr_nivel2 '%' • expr_nivel1
+
+    TK_ID          shift, and go to state 46
+    TK_LI_INTEIRO  shift, and go to state 47
+    TK_LI_DECIMAL  shift, and go to state 48
+    '('            shift, and go to state 49
+    '+'            shift, and go to state 50
+    '-'            shift, and go to state 51
+    '!'            shift, and go to state 52
+
+    literal         go to state 53
+    chamada_funcao  go to state 54
+    expr_nivel1     go to state 117
+    fator           go to state 63
+
+
+State 93
+
+   51 comando_enquanto: TK_ENQUANTO '(' expressao • ')' bloco_comandos
+
+    ')'  shift, and go to state 118
+
+
+State 94
+
+   39 comando_atribuicao: TK_ID TK_ATRIB expressao •
+
+    $default  reduce using rule 39 (comando_atribuicao)
+
+
+State 95
+
+   40 chamada_funcao: TK_ID '(' lista_argumentos_opcional • ')'
+
+    ')'  shift, and go to state 119
+
+
+State 96
+
+   42 lista_argumentos_opcional: lista_argumentos •
+   44 lista_argumentos: lista_argumentos • ',' expressao
+
+    ','  shift, and go to state 120
+
+    $default  reduce using rule 42 (lista_argumentos_opcional)
+
+
+State 97
+
+   43 lista_argumentos: expressao •
+
+    $default  reduce using rule 43 (lista_argumentos)
+
+
+State 98
+
+   14 parametro: TK_ID TK_ATRIB tipo •
+
+    $default  reduce using rule 14 (parametro)
+
+
+State 99
+
+   13 lista_parametros: lista_parametros ',' parametro •
+
+    $default  reduce using rule 13 (lista_parametros)
+
+
+State 100
+
+   20 declaracao_variavel_c_ini_opcional: TK_VAR TK_ID TK_ATRIB TK_DECIMAL • inicializacao_decimal_opcional
+
+    TK_COM  shift, and go to state 121
+
+    $default  reduce using rule 23 (inicializacao_decimal_opcional)
+
+    inicializacao_decimal_opcional  go to state 122
+
+
+State 101
+
+   19 declaracao_variavel_c_ini_opcional: TK_VAR TK_ID TK_ATRIB TK_INTEIRO • inicializacao_inteiro_opcional
+
+    TK_COM  shift, and go to state 123
+
+    $default  reduce using rule 21 (inicializacao_inteiro_opcional)
+
+    inicializacao_inteiro_opcional  go to state 124
+
+
+State 102
+
+   48 comando_condicional: TK_SE '(' expressao ')' • bloco_comandos senao_opcional
+
+    '['  shift, and go to state 14
+
+    bloco_comandos  go to state 125
+
+
+State 103
+
+   79 fator: '(' expressao ')' •
+
+    $default  reduce using rule 79 (fator)
+
+
+State 104
+
+   45 comando_retorno: TK_RETORNA expressao TK_ATRIB tipo •
+
+    $default  reduce using rule 45 (comando_retorno)
+
+
+State 105
+
+   53 expr_nivel7: expr_nivel7 '|' expr_nivel6 •
+   55 expr_nivel6: expr_nivel6 • '&' expr_nivel5
+
+    '&'  shift, and go to state 81
+
+    $default  reduce using rule 53 (expr_nivel7)
+
+
+State 106
+
+   55 expr_nivel6: expr_nivel6 '&' expr_nivel5 •
+   57 expr_nivel5: expr_nivel5 • TK_OC_EQ expr_nivel4
+   58            | expr_nivel5 • TK_OC_NE expr_nivel4
+
+    TK_OC_EQ  shift, and go to state 82
+    TK_OC_NE  shift, and go to state 83
+
+    $default  reduce using rule 55 (expr_nivel6)
+
+
+State 107
+
+   57 expr_nivel5: expr_nivel5 TK_OC_EQ expr_nivel4 •
+   60 expr_nivel4: expr_nivel4 • '<' expr_nivel3
+   61            | expr_nivel4 • '>' expr_nivel3
+   62            | expr_nivel4 • TK_OC_LE expr_nivel3
+   63            | expr_nivel4 • TK_OC_GE expr_nivel3
+
+    TK_OC_LE  shift, and go to state 84
+    TK_OC_GE  shift, and go to state 85
+    '<'       shift, and go to state 86
+    '>'       shift, and go to state 87
+
+    $default  reduce using rule 57 (expr_nivel5)
+
+
+State 108
+
+   58 expr_nivel5: expr_nivel5 TK_OC_NE expr_nivel4 •
+   60 expr_nivel4: expr_nivel4 • '<' expr_nivel3
+   61            | expr_nivel4 • '>' expr_nivel3
+   62            | expr_nivel4 • TK_OC_LE expr_nivel3
+   63            | expr_nivel4 • TK_OC_GE expr_nivel3
+
+    TK_OC_LE  shift, and go to state 84
+    TK_OC_GE  shift, and go to state 85
+    '<'       shift, and go to state 86
+    '>'       shift, and go to state 87
+
+    $default  reduce using rule 58 (expr_nivel5)
+
+
+State 109
+
+   62 expr_nivel4: expr_nivel4 TK_OC_LE expr_nivel3 •
+   65 expr_nivel3: expr_nivel3 • '+' expr_nivel2
+   66            | expr_nivel3 • '-' expr_nivel2
+
+    '+'  shift, and go to state 88
+    '-'  shift, and go to state 89
+
+    $default  reduce using rule 62 (expr_nivel4)
+
+
+State 110
+
+   63 expr_nivel4: expr_nivel4 TK_OC_GE expr_nivel3 •
+   65 expr_nivel3: expr_nivel3 • '+' expr_nivel2
+   66            | expr_nivel3 • '-' expr_nivel2
+
+    '+'  shift, and go to state 88
+    '-'  shift, and go to state 89
+
+    $default  reduce using rule 63 (expr_nivel4)
+
+
+State 111
+
+   60 expr_nivel4: expr_nivel4 '<' expr_nivel3 •
+   65 expr_nivel3: expr_nivel3 • '+' expr_nivel2
+   66            | expr_nivel3 • '-' expr_nivel2
+
+    '+'  shift, and go to state 88
+    '-'  shift, and go to state 89
+
+    $default  reduce using rule 60 (expr_nivel4)
+
+
+State 112
+
+   61 expr_nivel4: expr_nivel4 '>' expr_nivel3 •
+   65 expr_nivel3: expr_nivel3 • '+' expr_nivel2
+   66            | expr_nivel3 • '-' expr_nivel2
+
+    '+'  shift, and go to state 88
+    '-'  shift, and go to state 89
+
+    $default  reduce using rule 61 (expr_nivel4)
+
+
+State 113
+
+   65 expr_nivel3: expr_nivel3 '+' expr_nivel2 •
+   68 expr_nivel2: expr_nivel2 • '*' expr_nivel1
+   69            | expr_nivel2 • '/' expr_nivel1
+   70            | expr_nivel2 • '%' expr_nivel1
+
+    '*'  shift, and go to state 90
+    '/'  shift, and go to state 91
+    '%'  shift, and go to state 92
+
+    $default  reduce using rule 65 (expr_nivel3)
+
+
+State 114
+
+   66 expr_nivel3: expr_nivel3 '-' expr_nivel2 •
+   68 expr_nivel2: expr_nivel2 • '*' expr_nivel1
+   69            | expr_nivel2 • '/' expr_nivel1
+   70            | expr_nivel2 • '%' expr_nivel1
+
+    '*'  shift, and go to state 90
+    '/'  shift, and go to state 91
+    '%'  shift, and go to state 92
+
+    $default  reduce using rule 66 (expr_nivel3)
+
+
+State 115
+
+   68 expr_nivel2: expr_nivel2 '*' expr_nivel1 •
+
+    $default  reduce using rule 68 (expr_nivel2)
+
+
+State 116
+
+   69 expr_nivel2: expr_nivel2 '/' expr_nivel1 •
+
+    $default  reduce using rule 69 (expr_nivel2)
+
+
+State 117
+
+   70 expr_nivel2: expr_nivel2 '%' expr_nivel1 •
+
+    $default  reduce using rule 70 (expr_nivel2)
+
+
+State 118
+
+   51 comando_enquanto: TK_ENQUANTO '(' expressao ')' • bloco_comandos
+
+    '['  shift, and go to state 14
+
+    bloco_comandos  go to state 126
+
+
+State 119
+
+   40 chamada_funcao: TK_ID '(' lista_argumentos_opcional ')' •
+
+    $default  reduce using rule 40 (chamada_funcao)
+
+
+State 120
+
+   44 lista_argumentos: lista_argumentos ',' • expressao
+
+    TK_ID          shift, and go to state 46
+    TK_LI_INTEIRO  shift, and go to state 47
+    TK_LI_DECIMAL  shift, and go to state 48
+    '('            shift, and go to state 49
+    '+'            shift, and go to state 50
+    '-'            shift, and go to state 51
+    '!'            shift, and go to state 52
+
+    literal         go to state 53
+    chamada_funcao  go to state 54
+    expressao       go to state 127
+    expr_nivel7     go to state 56
+    expr_nivel6     go to state 57
+    expr_nivel5     go to state 58
+    expr_nivel4     go to state 59
+    expr_nivel3     go to state 60
+    expr_nivel2     go to state 61
+    expr_nivel1     go to state 62
+    fator           go to state 63
+
+
+State 121
+
+   24 inicializacao_decimal_opcional: TK_COM • TK_LI_DECIMAL
+   25                               | TK_COM • TK_LI_INTEIRO
+
+    TK_LI_INTEIRO  shift, and go to state 128
+    TK_LI_DECIMAL  shift, and go to state 129
+
+
+State 122
+
+   20 declaracao_variavel_c_ini_opcional: TK_VAR TK_ID TK_ATRIB TK_DECIMAL inicializacao_decimal_opcional •
+
+    $default  reduce using rule 20 (declaracao_variavel_c_ini_opcional)
+
+
+State 123
+
+   22 inicializacao_inteiro_opcional: TK_COM • TK_LI_INTEIRO
+
+    TK_LI_INTEIRO  shift, and go to state 130
+
+
+State 124
+
+   19 declaracao_variavel_c_ini_opcional: TK_VAR TK_ID TK_ATRIB TK_INTEIRO inicializacao_inteiro_opcional •
+
+    $default  reduce using rule 19 (declaracao_variavel_c_ini_opcional)
+
+
+State 125
+
+   48 comando_condicional: TK_SE '(' expressao ')' bloco_comandos • senao_opcional
+
+    TK_SENAO  shift, and go to state 131
+
+    $default  reduce using rule 49 (senao_opcional)
+
+    senao_opcional  go to state 132
+
+
+State 126
+
+   51 comando_enquanto: TK_ENQUANTO '(' expressao ')' bloco_comandos •
+
+    $default  reduce using rule 51 (comando_enquanto)
+
+
+State 127
+
+   44 lista_argumentos: lista_argumentos ',' expressao •
+
+    $default  reduce using rule 44 (lista_argumentos)
+
+
+State 128
+
+   25 inicializacao_decimal_opcional: TK_COM TK_LI_INTEIRO •
+
+    $default  reduce using rule 25 (inicializacao_decimal_opcional)
+
+
+State 129
+
+   24 inicializacao_decimal_opcional: TK_COM TK_LI_DECIMAL •
+
+    $default  reduce using rule 24 (inicializacao_decimal_opcional)
+
+
+State 130
+
+   22 inicializacao_inteiro_opcional: TK_COM TK_LI_INTEIRO •
+
+    $default  reduce using rule 22 (inicializacao_inteiro_opcional)
+
+
+State 131
+
+   50 senao_opcional: TK_SENAO • bloco_comandos
+
+    '['  shift, and go to state 14
+
+    bloco_comandos  go to state 133
+
+
+State 132
+
+   48 comando_condicional: TK_SE '(' expressao ')' bloco_comandos senao_opcional •
+
+    $default  reduce using rule 48 (comando_condicional)
+
+
+State 133
+
+   50 senao_opcional: TK_SENAO bloco_comandos •
+
+    $default  reduce using rule 50 (senao_opcional)

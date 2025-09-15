@@ -1,5 +1,6 @@
 %{
 #include <stdio.h>
+#include <stdlib.h>
 int yylex(void);
 void yyerror (char const *mensagem);
 %}
@@ -41,12 +42,9 @@ elemento: TK_INTEIRO ',' TK_DECIMAL;
 // ==========  Estrutura do programa ==========
 programa:
     %empty
-    | lista_elementos_opcional
+    | lista_elementos ';'
 ; // Um programa eh composto por uma lista opcional de elementos
-
-lista_elementos_opcional:
-    lista_elementos ';'
-; // a lista eh terminada pelo operador ponto-e-virgula
+ // a lista eh terminada pelo operador ponto-e-virgula
 
 lista_elementos:
     elemento
@@ -78,16 +76,13 @@ seguido do token TK_ATRIB.
 
 lista_opicional_parametros:
     %empty
-    | token_opcional_TK_COM lista_parametros
+    | TK_COM lista_parametros
+    | lista_parametros
 ; /* 
 A lista de parametros, quando presente, 
 consiste no token opcional TK_COM seguido de uma lista, 
 separada por virgula, de parametros. 
 */
-token_opcional_TK_COM:
-    %empty
-    | TK_COM
-;
 
 lista_parametros:
     parametro
@@ -116,13 +111,23 @@ tipo:
     | TK_INTEIRO
 ;
 
-declaracao_variavel_c_ini_opcional: // Com inicialização opcional
-    TK_VAR TK_ID TK_ATRIB tipo inicializacao_opcional
+// Regra "geral" que aponta para as regras específicas de tipo
+declaracao_variavel_c_ini_opcional:
+    TK_VAR TK_ID TK_ATRIB TK_INTEIRO inicializacao_inteiro_opcional
+    | TK_VAR TK_ID TK_ATRIB TK_DECIMAL inicializacao_decimal_opcional
 ;
 
-inicializacao_opcional:
+// Regra específica para inicialização de INTEIROS
+inicializacao_inteiro_opcional:
     %empty
-    | TK_COM literal
+    | TK_COM TK_LI_INTEIRO
+;
+
+// Regra específica para inicialização de DECIMAIS
+inicializacao_decimal_opcional:
+    %empty
+    | TK_COM TK_LI_DECIMAL   // Aceita literal decimal
+    | TK_COM TK_LI_INTEIRO  // E também aceita literal inteiro (ex: var d := decimal com 5)
 ;
 
 literal:

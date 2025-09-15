@@ -516,7 +516,7 @@ char *yytext;
 #line 1 "scanner.l"
 #line 2 "scanner.l"
     #include <stdio.h>
-    #include "parser.tab.h"
+    #include "parser.tab.h" // Gerado pelo bison -d
 #line 521 "lex.yy.c"
 #line 522 "lex.yy.c"
 

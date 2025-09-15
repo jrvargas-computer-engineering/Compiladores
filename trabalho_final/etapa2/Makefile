@@ -37,8 +37,8 @@ lex.yy.c: scanner.l
 	flex scanner.l
 
 parser.tab.c: parser.y
+	bison -d parser.y
 	bison -v parser.y
 
-exec: 
-	./etapa2 < test.txt ; echo $?
-
+run: 
+	./etapa2 < $(TEST_FILE) ; echo $?

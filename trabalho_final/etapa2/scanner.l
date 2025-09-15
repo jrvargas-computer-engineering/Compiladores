@@ -7,7 +7,6 @@
 %option yylineno
 
 %%
-// Regras do flex 
 tipo     { return TK_TIPO;}
 var      { return TK_VAR; }
 senao    { return TK_SENAO; }

@@ -55,7 +55,7 @@ lista_elementos:
 
 elemento:
     definicao_funcao
-    | declaracao_variavel
+    | declaracao_variavel_s_ini
 ; /* 
 Cada elemento dessa lista eh ou uma definicao de funcao 
 ou uma declaracao de variavel 
@@ -107,12 +107,8 @@ corpo_funcao:
 ; // O corpo eh um bloco de comandos 
 
 // ==========  Declaracao de variaveis  ==========
-/* declaracao_variavel: // Sem inicialização
+declaracao_variavel_s_ini: // Sem inicialização
     TK_VAR TK_ID TK_ATRIB tipo
-;
-
-variavel_declaracao_local: // Com inicialização opcional
-    TK_VAR TK_ID TK_ATRIB tipo inicializacao_opt
 ;
 
 tipo:
@@ -120,7 +116,11 @@ tipo:
     | TK_INTEIRO
 ;
 
-inicializacao_opt:
+declaracao_variavel_c_ini_opcional: // Com inicialização opcional
+    TK_VAR TK_ID TK_ATRIB tipo inicializacao_opcional
+;
+
+inicializacao_opcional:
     %empty
     | TK_COM literal
 ;
@@ -131,33 +131,93 @@ literal:
 ;
 
 // ==========  Comandos  ==========
-bloco_comandos:
-    TK_ABRE_COLCHETE comando_simples_list_opt TK_FECHA_COLCHETE
-;
-
-comando_simples_list_opt:
-    %empty
-    | comando_simples_list
-;
-
-comando_simples_list:
-    comando_simples
-    | comando_simples_list comando_simples
-;
-
 comando_simples:
-    variavel_declaracao_local ';'
-    | comando_atribuicao ';'
-    | chamada_funcao ';'
-    | comando_retorno ';'
-    | comando_condicional
-    | comando_iterativo
-    | bloco_comandos // Um bloco também é um comando simples [cite: 45]
-;
+    bloco_comandos
+    | declaracao_variavel_c_ini_opcional
+    | comando_atribuicao 
+    | chamada_funcao 
+    | comando_retorno
+    | construcoes_fluxo_controle
+;/*
+comandos simples da linguagem podem ser:
+bloco de comandos, declaração de variável, co-
+mando de atribuição, chamada de função, co-
+mando de retorno, e construções de fluxo de con-
+trole.
 */
+
+bloco_comandos:
+    '[' lista_comando_simples_opicionais ']'
+;/* Definido entre colchetes, e
+consiste em uma sequência, possivelmente vazia,
+de comandos simples. Um bloco de comandos
+é considerado como um comando único simples
+e pode ser utilizado em qualquer construção que
+aceite um comando simples.
+*/
+
+lista_comando_simples_opicionais:
+    %empty
+    | lista_comando_simples
+;
+
+lista_comando_simples:
+    comando_simples
+    | lista_comando_simples comando_simples
+;
+
+comando_atribuicao:
+    TK_ID TK_ATRIB expressao
+; // Consiste no token TK_ID seguido do token TK_ATRIB seguido de uma expressão
+
+chamada_funcao:
+    TK_ID '(' lista_argumentos_opcional ')' 
+; // consiste no token TK_ID, seguida de argumentos entre parênteses,
+
+lista_argumentos_opcional:
+    %empty
+    | lista_argumentos
+; // Uma chamada de função pode existir sem argumentos
+
+lista_argumentos:
+    expressao
+    | lista_argumentos ',' expressao
+; /*  cada argumento eh separado do outro por vírgula. 
+Um argumento eh uma expressão.
+*/
+
+comando_retorno:
+    TK_RETORNA expressao TK_ATRIB tipo
+; /* e terminado ou pelo
+token TK_DECIMAL ou pelo token TK_INTEIRO.
+*/ 
+
+construcoes_fluxo_controle:
+    comando_condicional
+    | comando_enquanto
+;
+
+comando_condicional:
+    TK_SE '(' expressao ')' bloco_comandos senao_opcional
+;
+
+senao_opcional:
+    %empty
+    | TK_SENAO bloco_comandos
+;
+
+comando_enquanto:
+    TK_ENQUANTO '(' expressao ')' bloco_comandos
+;
+
+// ==========  Expressoes  ==========
+expressao:
+    
+;
+
 %%
 
-// yylineno é uma variável global que o Flex (scanner.l) mantém com o número da linha atual
+// yylineno eh uma variável global que o Flex (scanner.l) mantém com o número da linha atual
 extern int yylineno;
  
 // Função chamada pelo yyparse ao encontrar um erro sintático.

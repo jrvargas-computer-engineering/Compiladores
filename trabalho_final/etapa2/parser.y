@@ -1,5 +1,6 @@
 %{
 #include <stdio.h>
+#include <stdlib.h>
 int yylex(void);
 void yyerror (char const *mensagem);
 %}
@@ -41,12 +42,9 @@ elemento: TK_INTEIRO ',' TK_DECIMAL;
 // ==========  Estrutura do programa ==========
 programa:
     %empty
-    | lista_elementos_opcional
+    | lista_elementos ';'
 ; // Um programa eh composto por uma lista opcional de elementos
-
-lista_elementos_opcional:
-    lista_elementos ';'
-; // a lista eh terminada pelo operador ponto-e-virgula
+ // a lista eh terminada pelo operador ponto-e-virgula
 
 lista_elementos:
     elemento
@@ -78,16 +76,13 @@ seguido do token TK_ATRIB.
 
 lista_opicional_parametros:
     %empty
-    | token_opcional_TK_COM lista_parametros
+    | TK_COM lista_parametros
+    | lista_parametros
 ; /* 
 A lista de parametros, quando presente, 
 consiste no token opcional TK_COM seguido de uma lista, 
 separada por virgula, de parametros. 
 */
-token_opcional_TK_COM:
-    %empty
-    | TK_COM
-;
 
 lista_parametros:
     parametro
@@ -116,13 +111,23 @@ tipo:
     | TK_INTEIRO
 ;
 
-declaracao_variavel_c_ini_opcional: // Com inicialização opcional
-    TK_VAR TK_ID TK_ATRIB tipo inicializacao_opcional
+// Regra "geral" que aponta para as regras específicas de tipo
+declaracao_variavel_c_ini_opcional:
+    TK_VAR TK_ID TK_ATRIB TK_INTEIRO inicializacao_inteiro_opcional
+    | TK_VAR TK_ID TK_ATRIB TK_DECIMAL inicializacao_decimal_opcional
 ;
 
-inicializacao_opcional:
+// Regra específica para inicialização de INTEIROS
+inicializacao_inteiro_opcional:
     %empty
-    | TK_COM literal
+    | TK_COM TK_LI_INTEIRO
+;
+
+// Regra específica para inicialização de DECIMAIS
+inicializacao_decimal_opcional:
+    %empty
+    | TK_COM TK_LI_DECIMAL   // Aceita literal decimal
+    | TK_COM TK_LI_INTEIRO  // E também aceita literal inteiro (ex: var d := decimal com 5)
 ;
 
 literal:
@@ -210,11 +215,72 @@ comando_enquanto:
     TK_ENQUANTO '(' expressao ')' bloco_comandos
 ;
 
-// ==========  Expressoes  ==========
+// ==========  Expressoes (COM PRECEDENCIA E ASSOCIATIVIDADE) ==========
 expressao:
-    
+    expr_nivel7
 ;
 
+// Nível 7: OU Lógico (Menor Precedência)
+expr_nivel7:
+    expr_nivel7 '|' expr_nivel6
+    | expr_nivel6
+;
+
+// Nível 6: E Lógico
+expr_nivel6:
+    expr_nivel6 '&' expr_nivel5
+    | expr_nivel5
+;
+
+// Nível 5: Operadores de Igualdade (==, !=)
+expr_nivel5:
+    expr_nivel5 TK_OC_EQ expr_nivel4
+    | expr_nivel5 TK_OC_NE expr_nivel4
+    | expr_nivel4
+;
+
+// Nível 4: Operadores Relacionais (<, >, <=, >=)
+expr_nivel4:
+    expr_nivel4 '<' expr_nivel3
+    | expr_nivel4 '>' expr_nivel3
+    | expr_nivel4 TK_OC_LE expr_nivel3
+    | expr_nivel4 TK_OC_GE expr_nivel3
+    | expr_nivel3
+;
+
+// Nível 3: Soma e Subtração (Binários)
+expr_nivel3:
+    expr_nivel3 '+' expr_nivel2
+    | expr_nivel3 '-' expr_nivel2
+    | expr_nivel2
+;
+
+// Nível 2: Multiplicação, Divisão, Resto
+expr_nivel2:
+    expr_nivel2 '*' expr_nivel1
+    | expr_nivel2 '/' expr_nivel1
+    | expr_nivel2 '%' expr_nivel1
+    | expr_nivel1
+;
+
+// Nível 1: Operadores Unários (+, -, !)
+// Operadores unários são prefixados e têm associatividade à direita.
+// Por isso, a recursão aqui é à direita.
+expr_nivel1:
+    '+' expr_nivel1
+    | '-' expr_nivel1
+    | '!' expr_nivel1
+    | fator
+;
+
+// Nível 0: "Fator" - Elementos de maior precedência
+// Inclui literais, identificadores, chamadas de função e expressões entre parênteses.
+fator:
+    TK_ID
+    | literal
+    | chamada_funcao
+    | '(' expressao ')' // Permite forçar a precedência
+;
 %%
 
 // yylineno eh uma variável global que o Flex (scanner.l) mantém com o número da linha atual
@@ -224,5 +290,5 @@ extern int yylineno;
 void yyerror (char const *mensagem)
 {
     // Imprime uma mensagem de erro para a saida informando a linha onde o erro ocorreu e a mensagem do parser.
-    printf("[ERRO SINTÁTICO] Linha %d: %s\n ", yylineno, mensagem);
+    printf("Linha %d: %s\n ", yylineno, mensagem);
 }

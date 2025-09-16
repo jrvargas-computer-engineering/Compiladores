@@ -1790,5 +1790,5 @@ extern int yylineno;
 void yyerror (char const *mensagem)
 {
     // Imprime uma mensagem de erro para a saida informando a linha onde o erro ocorreu e a mensagem do parser.
-    printf("[ERRO SINTÁTICO] Linha %d: %s\n ", yylineno, mensagem);
+    printf("Linha %d: %s\n ", yylineno, mensagem);
 }

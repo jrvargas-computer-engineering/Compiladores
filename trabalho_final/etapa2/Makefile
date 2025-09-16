@@ -1,52 +1,46 @@
-# CC=gcc
-
-# OBJ = main.o lex.yy.o
-
-# .PHONY: all run
-
-# all: etapa1
-
-# etapa1: $(OBJ)
-# 	$(CC) $^ -o etapa1
-
-# %.o: %.c
-# 	$(CC) -c  $< -o $@
-
-# lex.yy.c: scanner.l
-# 	flex scanner.l
-
-# run: etapa1
-# 	cat $(TEST_FILE) | ./etapa1
-
-# clean:
-# 	rm -f *.o lex.yy.c etapa1
-
 CC=gcc
 
+# nome do executavel final
+TARGET = etapa2
+
+# arquivos de objeto
 OBJ = main.o parser.tab.o lex.yy.o
 
-all: etapa2
+# diretorio com testes
+TEST_DIR = tests
 
-etapa2: $(OBJ)
-	$(CC) $^ -o etapa2 
+all: $(TARGET)
+
+
+# linking
+$(TARGET): $(OBJ)
+	$(CC) $^ -o $(TARGET) 
 
 %.o: %.c
 	$(CC) -c  $< -o $@
 	
-lex.yy.c: scanner.l
-	flex scanner.l
 
-parser.tab.c: parser.y
-	bison -d parser.y
+# Bison 
+parser.tab.c parser.tab.h: parser.y
 	bison -v parser.y
 
-run: 
-	./etapa2 < $(TEST_FILE) ; echo $?
+#flex executado se scanner.l ou parser.tab.h foram alterados
+lex.yy.c: scanner.l parser.tab.h
+	flex scanner.l
 
-# run em todos os arquivos da pasta tests
-run_all:
-	for file in test/*.txt; do \
-		echo "Running test: $$file"; \
-		./etapa2 < $$file ; \
-		echo ""; \
-	done
+
+
+test: $(TARGET)
+	@for f in $(TEST_DIR)/*.txt; do \
+			echo "--- Executando teste com a entrada: $$f ---"; \
+			./$(TARGET) < $$f; \
+			echo "--- [Código de Saída: $$?] ---"; \
+			echo ""; \
+		done
+
+#exec: 
+#	./etapa2 < test.txt ; echo $?
+
+
+clean: 
+	rm -f $(TARGET) $(OBJ) lex.yy.c parser.tab.c parser.tab.h

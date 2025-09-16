@@ -1,0 +1,31 @@
+Arquivo;Resultado
+tests/database.txt;[ERRO SINTÁTICO] Linha 1: syntax error, unexpected TK_ER, expecting end of file
+tests/entradas.txt;SUCESSO
+tests/err_cabecalho_notype.txt;[ERRO SINTÁTICO] Linha 2: syntax error, unexpected TK_COM, expecting TK_DECIMAL or TK_INTEIRO
+tests/err_func_call.txt;[ERRO SINTÁTICO] Linha 5: syntax error, unexpected ';', expecting ']'
+tests/err_func_sem_corpo.txt;[ERRO SINTÁTICO] Linha 3: syntax error, unexpected ';', expecting '['
+tests/err_lista_glob.txt;[ERRO SINTÁTICO] Linha 3: syntax error, unexpected ';', expecting TK_VAR or TK_ID
+tests/err_notype_return.txt;[ERRO SINTÁTICO] Linha 4: syntax error, unexpected ';', expecting TK_ATRIB
+tests/err_se_incompleto.txt;[ERRO SINTÁTICO] Linha 5: syntax error, unexpected TK_RETORNA, expecting '['
+tests/err_var_glob.txt;[ERRO SINTÁTICO] Linha 2: syntax error, unexpected TK_COM, expecting ';' or ','
+tests/err_var_notype.txt;[ERRO SINTÁTICO] Linha 2: syntax error, unexpected ';', expecting TK_DECIMAL or TK_INTEIRO
+tests/ok_cabecalho_notype.txt;SUCESSO
+tests/ok_func_call.txt;SUCESSO
+tests/ok_func_sem_corpo.txt;SUCESSO
+tests/ok_lista_glob.txt;SUCESSO
+tests/ok_notype_return.txt;SUCESSO
+tests/ok_se_incompleto.txt;SUCESSO
+tests/ok_simples.txt;SUCESSO
+tests/ok_var_glob.txt;SUCESSO
+tests/ok_var_notype.txt;SUCESSO
+tests/teste.txt;SUCESSO
+tests/teste1.txt;[ERRO SINTÁTICO] Linha 1: syntax error, unexpected TK_TIPO, expecting end of file
+tests/teste2.txt;SUCESSO
+tests/teste3.txt;[ERRO SINTÁTICO] Linha 1: syntax error, unexpected TK_OC_LE, expecting end of file
+tests/teste4.txt;[ERRO SINTÁTICO] Linha 2: syntax error, unexpected TK_ID, expecting TK_SETA
+tests/teste5.txt;[ERRO SINTÁTICO] Linha 2: syntax error, unexpected TK_TIPO, expecting end of file
+tests/teste6.txt;[ERRO SINTÁTICO] Linha 1: syntax error, unexpected TK_TIPO, expecting end of file
+tests/teste7.txt;[ERRO SINTÁTICO] Linha 1: syntax error, unexpected TK_ER, expecting end of file
+tests/teste8.txt;[ERRO SINTÁTICO] Linha 1: syntax error, unexpected TK_LI_INTEIRO, expecting end of file
+tests/teste_completo1.txt;SUCESSO
+tests/vazio.txt;SUCESSO

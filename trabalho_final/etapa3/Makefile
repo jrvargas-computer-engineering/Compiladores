@@ -1,32 +1,30 @@
-# Grupo A - Alunos:
-# Juliana Rodrigres de Vargas- 00337553
-# Sofia Popsin Gomes - 00313563
 CC=gcc
-CFLAGS=-Wall -Werror -fsanitize=address
 
 # nome do executavel final
 TARGET = etapa3
 
 # arquivos de objeto
-OBJ = main.o parser.tab.o lex.yy.o
+OBJ = main.o parser.tab.o lex.yy.o asd.o
 
 # diretorio com testes
 TEST_DIR = tests
 
+#flags
+CFLAGS = -g -Wall --fsanitize=address
 all: $(TARGET)
 
 
 # linking
 $(TARGET): $(OBJ)
-	$(CC) $(CFLAGS) $^ -o $(TARGET) 
+	$(CC) $^ -o $(TARGET) 
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c  $< -o $@
+	$(CC) $(CFLAGS )-c  $< -o $@
 	
 
 # Bison 
 parser.tab.c parser.tab.h: parser.y
-	bison -v parser.y
+	bison -d parser.y
 
 #flex executado se scanner.l ou parser.tab.h foram alterados
 lex.yy.c: scanner.l parser.tab.h
@@ -43,11 +41,8 @@ test: $(TARGET)
 		done
 
 #exec: 
-#	./etapa3 < test.txt ; echo $?
+#	./etapa2 < test.txt ; echo $?
 
 
 clean: 
-	rm -f $(TARGET) *.o
-
-tgz:
-	tar -czvf etapa3.tgz * .??* --exclude=etapa3.tgz --exclude=.git --exclude=.vscode --exclude=__pycache__ --exclude=*.o --exclude=etapa3
+	rm -f $(TARGET) $(OBJ) lex.yy.c parser.tab.c parser.tab.h saida.dot

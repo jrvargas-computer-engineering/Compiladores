@@ -71,7 +71,7 @@ static void _asd_print_graphviz (FILE *foutput, asd_tree_t *tree)
   int i;
   if (tree != NULL){
     //alterei aqui
-    fprintf(foutput, "  %ld [ label=\"%s\\n%.2f\" ];\n", (long)tree, tree->label, tree->value);
+    fprintf(foutput, "  %ld [ label=\"%s\" ];\n", (long)tree, tree->label);
     for (i = 0; i < tree->number_of_children; i++){
       fprintf(foutput, "  %ld -> %ld;\n", (long)tree, (long)tree->children[i]);
       _asd_print_graphviz(foutput, tree->children[i]);

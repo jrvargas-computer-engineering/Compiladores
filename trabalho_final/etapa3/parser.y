@@ -93,7 +93,7 @@ lista_elementos:
     elemento{
         $$ = $1; //primeiro elemento
     }
-    | lista_elementos ',' elemento {
+    |  elemento ',' lista_elementos {
         $$ = $1; 
         asd_add_child($1, $3);
     }
@@ -145,11 +145,12 @@ lista_opicional_parametros:
 
 lista_parametros:
     parametro {
-        $$ = $1; 
+        $$ = asd_new("com");
+        asd_add_child($$, $1);
     }
-    | lista_parametros ',' parametro {
+    | parametro ',' lista_parametros  {
         $$ = $1;
-        asd_add_child($1, $3);
+        asd_add_child($$, $3);
     }
 ;
 
@@ -175,6 +176,8 @@ corpo_funcao:
 // ==========  Declaracao de variaveis  ==========
 declaracao_variavel_s_ini: // Sem inicialização
     TK_VAR TK_ID TK_ATRIB tipo {
+        
+        $$ = NULL;
         $$ = asd_new("variavel");
         asd_tree_t* tk_id_no = asd_new($2->value);
         asd_add_child($$, tk_id_no);
@@ -188,6 +191,8 @@ tipo:
     | TK_INTEIRO
 ; //nao gera no AST
 
+
+//POSSIVEL ERRO AQUI
 // Regra "geral" que aponta para as regras específicas de tipo
 declaracao_variavel_c_ini_opcional:
     TK_VAR TK_ID TK_ATRIB TK_INTEIRO inicializacao_inteiro_opcional{
@@ -208,6 +213,8 @@ declaracao_variavel_c_ini_opcional:
     }
 ;
 
+
+/*POSSIVEL ERRO AQUI*/
 // Regra específica para inicialização de INTEIROS
 inicializacao_inteiro_opcional:
     %empty {$$ = NULL;}
@@ -284,7 +291,7 @@ lista_comando_simples:
     comando_simples{
         $$ = $1; 
     }
-    | lista_comando_simples comando_simples {
+    | comando_simples lista_comando_simples  {
        $$ = $1;
        asd_add_child($1, $2); 
     }

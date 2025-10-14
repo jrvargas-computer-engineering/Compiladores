@@ -53,7 +53,7 @@ extern asd_tree_t *arvore;
 %type <arvore> declaracao_variavel_s_ini declaracao_variavel_c_ini_opcional
 %type <arvore> inicializacao_inteiro_opcional inicializacao_decimal_opcional
 %type <arvore> literal
-%type <arvore> comando_simples bloco_comandos lista_comando_simples_opicionais lista_comando_simples
+%type <arvore> comando_simples bloco_comandos lista_comando_simples_opcionais lista_comando_simples
 %type <arvore> comando_atribuicao chamada_funcao comando_retorno
 %type <arvore> lista_argumentos_opcional lista_argumentos
 %type <arvore> construcoes_fluxo_controle comando_condicional senao_opcional comando_enquanto
@@ -248,18 +248,28 @@ declaracao_variavel_c_ini_opcional:
 // Regra "geral" que aponta para as regras específicas de tipo
 declaracao_variavel_c_ini_opcional:
     TK_VAR TK_ID TK_ATRIB TK_INTEIRO inicializacao_inteiro_opcional{
-        $$ = asd_new("com"); 
-        asd_tree_t* tk_id_no = asd_new($2->value);
-        asd_add_child($$, tk_id_no);
-        if ($5 != NULL) asd_add_child($$, $5);
-        free($2->value);
-        free($2);
+        if($5 == NULL){
+            $$ = NULL;
+        }
+        else{
+            $$ = asd_new("com"); 
+            asd_tree_t* tk_id_no = asd_new($2->value);
+            asd_add_child($$, tk_id_no);
+            asd_add_child($$, $5);
+        }
+            free($2->value);
+            free($2);
     }
     | TK_VAR TK_ID TK_ATRIB TK_DECIMAL inicializacao_decimal_opcional{
-        $$ = asd_new("com"); 
-        asd_tree_t* tk_id_no = asd_new($2->value);
-        asd_add_child($$, tk_id_no);
-        if ($5 != NULL) asd_add_child($$, $5);
+        if($5 == NULL){
+            $$ = NULL; 
+        }
+        else{
+            $$ = asd_new("com"); 
+            asd_tree_t* tk_id_no = asd_new($2->value);
+            asd_add_child($$, tk_id_no);
+            asd_add_child($$, $5);
+        }
         free($2->value);
         free($2);
     }
@@ -314,7 +324,7 @@ literal:
 //trole.
 comando_simples:
     bloco_comandos { $$ = $1; }
-    | declaracao_variavel_c_ini_opcional { $$ = $1; }
+    | declaracao_variavel_c_ini_opcional { if($1 == NULL ){$$ = NULL;} else{$$ = $1;} } //mudei aqui
     | comando_atribuicao { $$ = $1; }
     | chamada_funcao { $$ = $1; }
     | comando_retorno { $$ = $1; }
@@ -328,24 +338,33 @@ comando_simples:
 //e pode ser utilizado em qualquer construção que
 //aceite um comando simples.
 bloco_comandos:
-    '[' lista_comando_simples_opicionais ']'{
+    '[' lista_comando_simples_opcionais ']'{
         $$ = $2;
     } // apenas propaga lista de comandos
 ;
 
 
-lista_comando_simples_opicionais:
+lista_comando_simples_opcionais:
     %empty {$$ = NULL;}
     | lista_comando_simples { $$ = $1; }
 ;
 
 lista_comando_simples:
     comando_simples{
-        $$ = $1; 
+        //$$ = $1;  mudei aqui
+        if($1 == NULL ){$$ = NULL;} else{$$ = $1;} 
     }
     | comando_simples lista_comando_simples  {
-       $$ = $1;
-       asd_add_child($1, $2); 
+       
+       if($1 == NULL ){
+            $$ = $2;
+        } else{
+            $$ = $1;
+            asd_add_child($1, $2);    
+        } 
+
+       //$$ = $1;
+       //asd_add_child($1, $2); 
     }
 ;
 

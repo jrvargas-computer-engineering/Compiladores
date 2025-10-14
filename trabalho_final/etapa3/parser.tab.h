@@ -48,7 +48,8 @@ extern int yydebug;
 #line 17 "parser.y"
  
     #include "asd.h" 
-// estrutura de valor lexico
+    
+    // estrutura de valor lexico
     typedef struct lexical_value {
       int line;
       int type; 
@@ -56,7 +57,7 @@ extern int yydebug;
     } lexical_value_t;
     
 
-#line 60 "parser.tab.h"
+#line 61 "parser.tab.h"
 
 /* Token kinds.  */
 #ifndef YYTOKENTYPE
@@ -94,12 +95,12 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 29 "parser.y"
+#line 30 "parser.y"
 
   lexical_value_t *valor_lex;
   asd_tree_t *arvore;
 
-#line 103 "parser.tab.h"
+#line 104 "parser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

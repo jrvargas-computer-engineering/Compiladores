@@ -16,7 +16,8 @@ extern asd_tree_t *arvore;
 // ================= declaracoes do bison ========================
 %code requires { 
     #include "asd.h" 
-// estrutura de valor lexico
+    
+    // estrutura de valor lexico
     typedef struct lexical_value {
       int line;
       int type; 
@@ -47,7 +48,7 @@ extern asd_tree_t *arvore;
 
 // cabecas de producao que criam ou propagam nós
 %type <arvore> programa lista_elementos elemento
-%type <arvore> definicao_funcao corpo_funcao
+%type <arvore> definicao_funcao cabecalho_funcao corpo_funcao
 %type <arvore> lista_opicional_parametros lista_parametros parametro
 %type <arvore> declaracao_variavel_s_ini declaracao_variavel_c_ini_opcional
 %type <arvore> inicializacao_inteiro_opcional inicializacao_decimal_opcional
@@ -93,18 +94,25 @@ lista_elementos:
     elemento{
         $$ = $1; //primeiro elemento
     }
-    |  elemento ',' lista_elementos {
-        $$ = $1; 
-        asd_add_child($1, $3);
+    |  elemento ',' lista_elementos { //fix:mudei para poder ter null 
+        if($1 != NULL){
+            $$ = $1; 
+            if($3 != NULL){
+                asd_add_child($$, $3);
+            }
+        }
+        else {
+           $$ = $3; 
+        }
     }
-; // Os elementos da lista são separados pelo operador virgula (left recursion)
+; // Os elementos da lista são separados pelo operador virgula ()
 
 elemento:
     definicao_funcao {
         $$ = $1;
     }
-    | declaracao_variavel_s_ini {
-        $$ = $1; 
+    | declaracao_variavel_s_ini { //fix: mudei para null, para nao por na arvore
+        $$ = NULL; 
     }
 ; 
 
@@ -118,14 +126,29 @@ elemento:
 //seguido por uma lista opcional de parametros 
 //seguido do token TK_ATRIB. 
 
-definicao_funcao:
-    TK_ID TK_SETA tipo lista_opicional_parametros TK_ATRIB corpo_funcao {
+//definicao_funcao:
+//    TK_ID TK_SETA tipo lista_opicional_parametros TK_ATRIB corpo_funcao {
+//        $$ = asd_new($1->value); 
+//        if ($6 != NULL) asd_add_child($$, $6);
+//        if ($4 != NULL) asd_add_child($$, $4);
+//        
+//        free($1->value);
+//        free($1);
+//    }
+//;
+
+
+definicao_funcao: 
+    cabecalho_funcao corpo_funcao {
+        $$ = $1;
+        if($2 != NULL)
+            asd_add_child($$, $2); 
+    }
+;
+
+cabecalho_funcao: 
+    TK_ID TK_SETA tipo lista_opicional_parametros TK_ATRIB{
         $$ = asd_new($1->value); 
-        if ($6 != NULL) asd_add_child($$, $6);
-        if ($4 != NULL) asd_add_child($$, $4);
-        
-        free($1->value);
-        free($1);
     }
 ;
 
@@ -145,8 +168,9 @@ lista_opicional_parametros:
 
 lista_parametros:
     parametro {
-        $$ = asd_new("com");
-        asd_add_child($$, $1);
+        $$ = $1; //fix
+        //$$ = asd_new("com");
+        //asd_add_child($$, $1);
     }
     | parametro ',' lista_parametros  {
         $$ = $1;
@@ -177,10 +201,11 @@ corpo_funcao:
 declaracao_variavel_s_ini: // Sem inicialização
     TK_VAR TK_ID TK_ATRIB tipo {
         
+        //fix: tirei criacao de nodo aqui
         $$ = NULL;
-        $$ = asd_new("variavel");
-        asd_tree_t* tk_id_no = asd_new($2->value);
-        asd_add_child($$, tk_id_no);
+        //$$ = asd_new("variavel");
+        //asd_tree_t* tk_id_no = asd_new($2->value);
+        //asd_add_child($$, tk_id_no);
         free($2->value);
         free($2); 
     }
@@ -191,6 +216,33 @@ tipo:
     | TK_INTEIRO
 ; //nao gera no AST
 
+/*
+declaracao_variavel_c_ini_opcional:
+    TK_VAR TK_ID TK_ATRIB TK_INTEIRO  { $$ = NULL; }
+    | TK_VAR TK_ID TK_ATRIB TK_DECIMAL  { $$ = NULL; }
+    | TK_VAR TK_ID TK_ATRIB TK_INTEIRO TK_COM TK_LI_INTEIRO {
+        $$ = asd_new("com");
+        asd_add_child($$, asd_new($2->value));
+        asd_add_child($$, asd_new($6->value));
+        free($2->value);
+        free($6->value);
+    }
+    | TK_VAR TK_ID TK_ATRIB TK_DECIMAL TK_COM TK_LI_DECIMAL {
+        $$ = asd_new("com");
+        asd_add_child($$, asd_new($2->value));
+        asd_add_child($$, asd_new($6->value));
+        free($2->value);
+        free($6->value);
+    }
+    | TK_VAR TK_ID TK_ATRIB TK_DECIMAL TK_COM TK_LI_INTEIRO {
+        $$ = asd_new("com");
+        asd_add_child($$, asd_new($2->value));
+        asd_add_child($$, asd_new($6->value));
+        free($2->value);
+        free($6->value);
+    }
+;
+*/
 
 //POSSIVEL ERRO AQUI
 // Regra "geral" que aponta para as regras específicas de tipo
@@ -214,7 +266,7 @@ declaracao_variavel_c_ini_opcional:
 ;
 
 
-/*POSSIVEL ERRO AQUI*/
+//POSSIVEL ERRO AQUI
 // Regra específica para inicialização de INTEIROS
 inicializacao_inteiro_opcional:
     %empty {$$ = NULL;}
@@ -315,6 +367,7 @@ chamada_funcao:
         char label[256];
         sprintf(label, "call %s", $1->value);
         $$ = asd_new(label);
+        
         if ($3 != NULL) asd_add_child($$, $3);
         free($1->value);
         free($1);       
@@ -332,10 +385,10 @@ lista_argumentos_opcional:
 lista_argumentos:
     expressao{
         $$ = $1; 
-    }
-    | lista_argumentos ',' expressao {
+    }//mexi aqui na ordem da recursao
+    | expressao ',' lista_argumentos  {
         $$ = $1;
-        asd_add_child($1, $3);
+        asd_add_child($$, $3);
     }
 ; 
 

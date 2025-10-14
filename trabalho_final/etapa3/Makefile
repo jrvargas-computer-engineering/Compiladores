@@ -10,7 +10,7 @@ OBJ = main.o parser.tab.o lex.yy.o asd.o
 TEST_DIR = tests
 
 #flags
-CFLAGS = -g -Wall --fsanitize=address
+CFLAGS = -g -Wall #--fsanitize=address
 all: $(TARGET)
 
 

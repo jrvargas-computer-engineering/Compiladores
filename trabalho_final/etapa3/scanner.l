@@ -1,3 +1,7 @@
+/* Grupo A - Alunos:
+ Juliana Rodrigres de Vargas- 00337553
+ Sofia Popsin Gomes - 00313563*/
+
 %{
     #include <stdio.h>
     #include "parser.tab.h" // Gerado pelo bison -d
@@ -58,15 +62,3 @@ int get_line_number() {
     return yylineno;
 }
 
-
-/*
-int main (int argc, char **argv) {
-    int token = 0;
-    while ((token = yylex())){
-        printf("token: %i", &token);
-    // faça algo com o token
-    // consulte o lexema com yytext
-    }
-    return 0;
-}
-*/

@@ -1,3 +1,7 @@
+/* Grupo A - Alunos:
+ Juliana Rodrigres de Vargas- 00337553
+ Sofia Popsin Gomes - 00313563*/
+ 
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>

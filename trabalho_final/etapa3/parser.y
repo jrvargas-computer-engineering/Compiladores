@@ -1,3 +1,7 @@
+// Grupo A - Alunos:
+// Juliana Rodrigres de Vargas- 00337553
+// Sofia Popsin Gomes - 00313563
+
 %{
 
 // ================= codigo em C ========================
@@ -119,25 +123,6 @@ elemento:
 
 // ==========  Definicao de funcao  ==========
 
-// Uma definicao de funcao eh composta por um cabecalho e um corpo
-//O cabecalho consiste no token TK_ID 
-//seguido do token TK_SETA 
-//seguido ou do token TK_DECIMAL ou do token TK_INTEIRO, 
-//seguido por uma lista opcional de parametros 
-//seguido do token TK_ATRIB. 
-
-//definicao_funcao:
-//    TK_ID TK_SETA tipo lista_opicional_parametros TK_ATRIB corpo_funcao {
-//        $$ = asd_new($1->value); 
-//        if ($6 != NULL) asd_add_child($$, $6);
-//        if ($4 != NULL) asd_add_child($$, $4);
-//        
-//        free($1->value);
-//        free($1);
-//    }
-//;
-
-
 definicao_funcao: 
     cabecalho_funcao corpo_funcao {
         $$ = $1;
@@ -216,33 +201,6 @@ tipo:
     | TK_INTEIRO
 ; //nao gera no AST
 
-/*
-declaracao_variavel_c_ini_opcional:
-    TK_VAR TK_ID TK_ATRIB TK_INTEIRO  { $$ = NULL; }
-    | TK_VAR TK_ID TK_ATRIB TK_DECIMAL  { $$ = NULL; }
-    | TK_VAR TK_ID TK_ATRIB TK_INTEIRO TK_COM TK_LI_INTEIRO {
-        $$ = asd_new("com");
-        asd_add_child($$, asd_new($2->value));
-        asd_add_child($$, asd_new($6->value));
-        free($2->value);
-        free($6->value);
-    }
-    | TK_VAR TK_ID TK_ATRIB TK_DECIMAL TK_COM TK_LI_DECIMAL {
-        $$ = asd_new("com");
-        asd_add_child($$, asd_new($2->value));
-        asd_add_child($$, asd_new($6->value));
-        free($2->value);
-        free($6->value);
-    }
-    | TK_VAR TK_ID TK_ATRIB TK_DECIMAL TK_COM TK_LI_INTEIRO {
-        $$ = asd_new("com");
-        asd_add_child($$, asd_new($2->value));
-        asd_add_child($$, asd_new($6->value));
-        free($2->value);
-        free($6->value);
-    }
-;
-*/
 
 //POSSIVEL ERRO AQUI
 // Regra "geral" que aponta para as regras específicas de tipo
@@ -553,11 +511,11 @@ expr_nivel2:
 // Por isso, a recursão aqui é à direita.
 expr_nivel1:
     '+' expr_nivel1 {
-        $$ = asd_new("+u"); 
+        $$ = asd_new("+"); 
         asd_add_child($$, $2);       
     }
     | '-' expr_nivel1 {
-        $$ = asd_new("-u"); 
+        $$ = asd_new("-"); 
         asd_add_child($$, $2);
     }
     | '!' expr_nivel1 {

@@ -88,15 +88,18 @@ static void _asd_print_graphviz (FILE *foutput, asd_tree_t *tree)
 
 void asd_print_graphviz(asd_tree_t *tree)
 {
-  FILE *foutput = fopen(ARQUIVO_SAIDA, "w");//mudei de w+ para w
-  if(foutput == NULL){
-    printf("Erro: %s não pude abrir o arquivo [%s] para escrita.\n", __FUNCTION__, ARQUIVO_SAIDA);
-  }
+
+  FILE *foutput = stdout;  // redireciona para saída padrão
+
+  //FILE *foutput = fopen(ARQUIVO_SAIDA, "w");//mudei de w+ para w
+  //if(foutput == NULL){
+  //  printf("Erro: %s não pude abrir o arquivo [%s] para escrita.\n", __FUNCTION__, ARQUIVO_SAIDA);
+  //}
   if (tree != NULL){
     fprintf(foutput, "digraph grafo {\n");
     _asd_print_graphviz(foutput, tree);
     fprintf(foutput, "}\n");
-    fclose(foutput);
+    //fclose(foutput);
   }else{
     printf("Erro: %s recebeu parâmetro tree = %p.\n", __FUNCTION__, tree);
   }

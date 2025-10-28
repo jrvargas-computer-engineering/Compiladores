@@ -9,6 +9,7 @@
 
 %option noyywrap
 %option yylineno
+%option noinput nounput
 
 /* Regras do flex */ 
 /* "Somente tokens identificadores e literais devem possuir 

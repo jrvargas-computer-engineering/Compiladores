@@ -145,13 +145,14 @@ definicao_funcao:
 //;
 cabecalho_funcao: 
     TK_ID TK_SETA tipo lista_opicional_parametros TK_ATRIB{
-        $$ = asd_new($1->value); 
-
-        if ($4 != NULL) {
-            asd_add_child($$, $4);
-        }
+        $$ = asd_new($1->value); // Cria o nó SÓ com o nome
         free($1->value);
         free($1);
+        
+        // Joga fora a lista de parâmetros para não vazar
+        if ($4 != NULL) {
+            asd_free($4); // <--- LIBERA O NÓ IMEDIATAMENTE
+        }
     }
 ;
 

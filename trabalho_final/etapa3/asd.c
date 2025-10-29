@@ -17,6 +17,9 @@ asd_tree_t *asd_new(const char *label)
     ret->number_of_children = 0;
     ret->children = NULL;
     ret->value = 0;
+    //DEBUG
+    //printf("[DEBUG] Criando nó: %s (%p)\n", label, (void*)ret);
+
   }
   return ret;
 }
@@ -24,6 +27,8 @@ asd_tree_t *asd_new(const char *label)
 void asd_free(asd_tree_t *tree)
 {
   if (tree != NULL){
+    //printf("[DEBUG] Liberando nó: %s (%p)\n", tree->label, (void*)tree);
+
     int i;
     for (i = 0; i < tree->number_of_children; i++){
       asd_free(tree->children[i]);
@@ -88,15 +93,17 @@ static void _asd_print_graphviz (FILE *foutput, asd_tree_t *tree)
 
 void asd_print_graphviz(asd_tree_t *tree)
 {
-  FILE *foutput = fopen(ARQUIVO_SAIDA, "w");//mudei de w+ para w
-  if(foutput == NULL){
-    printf("Erro: %s não pude abrir o arquivo [%s] para escrita.\n", __FUNCTION__, ARQUIVO_SAIDA);
-  }
+
+  FILE *foutput = stdout;  
+  //FILE *foutput = fopen(ARQUIVO_SAIDA, "w");//mudei de w+ para w
+  //if(foutput == NULL){
+  //  printf("Erro: %s não pude abrir o arquivo [%s] para escrita.\n", __FUNCTION__, ARQUIVO_SAIDA);
+  //}
   if (tree != NULL){
     fprintf(foutput, "digraph grafo {\n");
     _asd_print_graphviz(foutput, tree);
     fprintf(foutput, "}\n");
-    fclose(foutput);
+    //fclose(foutput);
   }else{
     printf("Erro: %s recebeu parâmetro tree = %p.\n", __FUNCTION__, tree);
   }

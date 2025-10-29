@@ -91,6 +91,26 @@ programa:
     }
 ; 
 
+
+//
+
+programa: escopo_ini lista escopo_fim ';'
+escopo_ini: %empty {
+    /*
+    tabela nao eh no 
+    1. cria tabela vazia
+    2. empilha essa tabela
+    */
+ }; //
+escopo_fim: %empty; {
+    /*
+    1. desempilha tabela do topo
+    2. free "profundo da tabela"
+    aqui faz free de todos os elementos da tabela
+ */
+} 
+
+//
  
 //Cada elemento dessa lista eh ou uma definicao de funcao 
 //ou uma declaracao de variavel 
@@ -124,6 +144,7 @@ elemento:
 // ==========  Definicao de funcao  ==========
 
 definicao_funcao: 
+    //cabecalho_funcao corpo_funcao *DESTRUICAO DO ESCOPO DA FUNCAO AQUI*{
     cabecalho_funcao corpo_funcao {
         $$ = $1;
         if($2 != NULL)
@@ -131,29 +152,18 @@ definicao_funcao:
     }
 ;
 
+//nome da funcao no escopo global
+//criaria o escopo, por exemplo
+//*COLOCAR NO ESCOPO GLOBAL* TK_ID TK_SETA tipo *ACAO DE CRIACAO DO ESCOPO* lista_opicional_parametros TK_ATRIB{
+//TK_ID TK_SETA tipo -> colocar isso num nao terminal, talvez, que gere a acao vazia que coloca no escopo
 
-//anteriormente, a lista_opcional_parametros era perdida
-//(nao era adicionada como filha)
-//isso gerava memory leak
 
-//cabecalho_funcao: 
-//    TK_ID TK_SETA tipo lista_opicional_parametros TK_ATRIB{
-//        $$ = asd_new($1->value); 
-//        free($1->value);
-//        free($1);
-//    }
-//;
 cabecalho_funcao: 
     TK_ID TK_SETA tipo lista_opicional_parametros TK_ATRIB{
         $$ = asd_new($1->value); 
-
-        if ($4 != NULL) {
-            asd_add_child($$, $4);
-        }
-        free($1->value);
-        free($1);
     }
 ;
+
 
 //A lista de parametros, quando presente, 
 //consiste no token opcional TK_COM seguido de uma lista, 
@@ -176,7 +186,7 @@ lista_parametros:
     }
     | parametro ',' lista_parametros  {
         $$ = $1;
-        asd_add_child($$, $3); 
+        asd_add_child($$, $3);
     }
 ;
 
@@ -312,6 +322,9 @@ comando_simples:
 //é considerado como um comando único simples
 //e pode ser utilizado em qualquer construção que
 //aceite um comando simples.
+
+//** nao precisa criar escopo de um bloco vazio 
+
 bloco_comandos:
     '[' lista_comando_simples_opcionais ']'{
         $$ = $2;

@@ -5,13 +5,27 @@
 %{
     #include <stdio.h>
     #include "parser.tab.h" // Gerado pelo bison -d
+
+
+/*  =====================================================
+    =================== Funcoes =========================
+    =====================================================
+*/ 
+int valor_lex_create(int token_type){ 
+    yylval.valor_lex = malloc(sizeof(lexical_value_t));
+    yylval.valor_lex->line = yylineno; 
+    yylval.valor_lex->value = strdup(yytext);
+    return token_type; 
+}
+
+
 %}
 
 %option noyywrap
 %option yylineno
 %option noinput nounput
 
-/* Regras do flex */ 
+/* Regras do flex */
 /* "Somente tokens identificadores e literais devem possuir 
  um valor léxico a ser empregado na AST"*/
 
@@ -29,22 +43,13 @@ com      { return TK_COM; }
 
 
 [0-9]*\.[0-9]+  { 
-    yylval.valor_lex = malloc(sizeof(lexical_value_t));
-    yylval.valor_lex->line = yylineno; 
-    yylval.valor_lex->value = strdup(yytext);
-    return TK_LI_DECIMAL;
+    return valor_lex_create(TK_LI_DECIMAL);
 }
 [0-9]+  { 
-    yylval.valor_lex = malloc(sizeof(lexical_value_t));
-    yylval.valor_lex->line = yylineno; 
-    yylval.valor_lex->value = strdup(yytext);
-    return TK_LI_INTEIRO;
+    return valor_lex_create(TK_LI_INTEIRO);
 }
 [a-z_][a-z0-9_]* { 
-    yylval.valor_lex = malloc(sizeof(lexical_value_t));
-    yylval.valor_lex->line = yylineno; 
-    yylval.valor_lex->value = strdup(yytext);
-    return TK_ID;
+    return valor_lex_create(TK_ID);
 }
 
 \<= { return TK_OC_LE; }

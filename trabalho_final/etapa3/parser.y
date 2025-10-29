@@ -131,12 +131,29 @@ definicao_funcao:
     }
 ;
 
+
+//anteriormente, a lista_opcional_parametros era perdida
+//(nao era adicionada como filha)
+//isso gerava memory leak
+
+//cabecalho_funcao: 
+//    TK_ID TK_SETA tipo lista_opicional_parametros TK_ATRIB{
+//        $$ = asd_new($1->value); 
+//        free($1->value);
+//        free($1);
+//    }
+//;
 cabecalho_funcao: 
     TK_ID TK_SETA tipo lista_opicional_parametros TK_ATRIB{
         $$ = asd_new($1->value); 
+
+        if ($4 != NULL) {
+            asd_add_child($$, $4);
+        }
+        free($1->value);
+        free($1);
     }
 ;
-
 
 //A lista de parametros, quando presente, 
 //consiste no token opcional TK_COM seguido de uma lista, 
@@ -159,7 +176,7 @@ lista_parametros:
     }
     | parametro ',' lista_parametros  {
         $$ = $1;
-        asd_add_child($$, $3);
+        asd_add_child($$, $3); 
     }
 ;
 

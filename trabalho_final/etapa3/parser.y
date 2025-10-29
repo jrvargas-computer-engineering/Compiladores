@@ -3,41 +3,42 @@
 // Sofia Popsin Gomes - 00313563
 
 %{
-
-// ================= codigo em C ========================
 #include <stdio.h>
 #include <stdlib.h>
 #include "asd.h"
-
 int yylex(void);
 void yyerror (char const *mensagem);
-
-
 extern asd_tree_t *arvore;
 %}
 
 
-// ================= declaracoes do bison ========================
+/*  =====================================================
+    =============== Declaracoes do Bison ================
+    =====================================================
+*/ 
 %code requires { 
-    #include "asd.h" 
-    
-    // estrutura de valor lexico
+    #include "asd.h"     
     typedef struct lexical_value {
       int line;
       int type; 
       char *value;
     } lexical_value_t;
-    
+
+    asd_tree_t* new_node_from_lexval(lexical_value_t *lexval);
+    asd_tree_t* new_node_from_binary_op(const char *label, asd_tree_t *child1, asd_tree_t *child2);
+    asd_tree_t* new_node_from_unary_op(const char *label, asd_tree_t *child);
+
 }
-%define parse.error verbose // Para mensagens de erro detalhadas 
+%define parse.error verbose //Para mensagens de erro detalhadas 
 
 %union {
   lexical_value_t *valor_lex;
   asd_tree_t *arvore;
 }
-// ===============================================================
-
-// ================= tokens da linguagem =========================
+/*  =====================================================
+    =============== Tokens da Linguagem =================
+    =====================================================
+*/ 
 //tokens com "valor de conteudo" carregam informacao
 //vao virar folhas posteriormente
 %token<valor_lex> TK_ID
@@ -62,21 +63,16 @@ extern asd_tree_t *arvore;
 %type <arvore> lista_argumentos_opcional lista_argumentos
 %type <arvore> construcoes_fluxo_controle comando_condicional senao_opcional comando_enquanto
 %type <arvore> expressao expr_nivel7 expr_nivel6 expr_nivel5 expr_nivel4 expr_nivel3 expr_nivel2 expr_nivel1 fator
-// ===============================================================
-
-
-
-// ====================  Regras da gramatica  ====================  
 %%
-/*
-programa: lista ';';
-programa: %empty;
-lista: elemento;
-lista: lista ',' elemento;
-elemento: TK_INTEIRO ',' TK_DECIMAL;
-*/
 
-// ==========  Estrutura do programa ==========
+
+
+
+/*  =====================================================
+    =============== Regras da Gramatica  ================
+    =====================================================
+*/ 
+
 
 // Um programa eh composto por uma lista opcional de elementos
 // a lista eh terminada pelo operador ponto-e-virgula
@@ -122,7 +118,6 @@ elemento:
 
 
 // ==========  Definicao de funcao  ==========
-
 definicao_funcao: 
     cabecalho_funcao corpo_funcao {
         $$ = $1;
@@ -131,27 +126,13 @@ definicao_funcao:
     }
 ;
 
-
-//anteriormente, a lista_opcional_parametros era perdida
-//(nao era adicionada como filha)
-//isso gerava memory leak
-
-//cabecalho_funcao: 
-//    TK_ID TK_SETA tipo lista_opicional_parametros TK_ATRIB{
-//        $$ = asd_new($1->value); 
-//        free($1->value);
-//        free($1);
-//    }
-//;
 cabecalho_funcao: 
     TK_ID TK_SETA tipo lista_opicional_parametros TK_ATRIB{
-        $$ = asd_new($1->value); // Cria o nó SÓ com o nome
-        free($1->value);
-        free($1);
-        
-        // Joga fora a lista de parâmetros para não vazar
+        $$ = new_node_from_lexval($1); 
+
+        // Joga fora a lista de parâmetros para não ter memory leak
         if ($4 != NULL) {
-            asd_free($4); // <--- LIBERA O NÓ IMEDIATAMENTE
+            asd_free($4); 
         }
     }
 ;
@@ -171,9 +152,7 @@ lista_opicional_parametros:
 
 lista_parametros:
     parametro {
-        $$ = $1; //fix
-        //$$ = asd_new("com");
-        //asd_add_child($$, $1);
+        $$ = $1; 
     }
     | parametro ',' lista_parametros  {
         $$ = $1;
@@ -187,9 +166,7 @@ lista_parametros:
 //seguido ou do token TK_INTEIRO ou do token TK_DECIMAL.
 parametro:
     TK_ID TK_ATRIB tipo {
-        $$ = asd_new($1->value);
-        free($1->value);
-        free($1); 
+        $$ = new_node_from_lexval($1); 
     }
 ; 
 
@@ -203,12 +180,7 @@ corpo_funcao:
 // ==========  Declaracao de variaveis  ==========
 declaracao_variavel_s_ini: // Sem inicialização
     TK_VAR TK_ID TK_ATRIB tipo {
-        
-        //fix: tirei criacao de nodo aqui
         $$ = NULL;
-        //$$ = asd_new("variavel");
-        //asd_tree_t* tk_id_no = asd_new($2->value);
-        //asd_add_child($$, tk_id_no);
         free($2->value);
         free($2); 
     }
@@ -257,9 +229,7 @@ declaracao_variavel_c_ini_opcional:
 inicializacao_inteiro_opcional:
     %empty {$$ = NULL;}
     | TK_COM TK_LI_INTEIRO {
-        $$ = asd_new($2->value); 
-        free($2->value);
-        free($2);        
+        $$ = new_node_from_lexval($2);         
     }
 ;
 
@@ -268,27 +238,20 @@ inicializacao_decimal_opcional:
     %empty {$$ = NULL;}
     // Aceita literal decimal
     | TK_COM TK_LI_DECIMAL   { 
-        $$ = asd_new($2->value);
-        free($2->value);
-        free($2);
+        $$ = new_node_from_lexval($2); 
+
     }
     | TK_COM TK_LI_INTEIRO  {// E também aceita literal inteiro (ex: var d := decimal com 5)
-        $$ = asd_new($2->value);
-        free($2->value);
-        free($2);  
+        $$ = new_node_from_lexval($2); 
     }
 ;
 
 literal:
     TK_LI_INTEIRO {
-        $$ = asd_new($1->value);
-        free($1->value);
-        free($1);
+        $$ = new_node_from_lexval($1); 
     }
     | TK_LI_DECIMAL {
-        $$ = asd_new($1->value);
-        free($1->value);
-        free($1);
+        $$ = new_node_from_lexval($1); 
     }
 ;
 // ==========  Comandos  ==========
@@ -327,7 +290,6 @@ lista_comando_simples_opcionais:
 
 lista_comando_simples:
     comando_simples{
-        //$$ = $1;  mudei aqui
         if($1 == NULL ){$$ = NULL;} else{$$ = $1;} 
     }
     | comando_simples lista_comando_simples  {
@@ -338,9 +300,6 @@ lista_comando_simples:
             $$ = $1;
             asd_add_child($1, $2);    
         } 
-
-       //$$ = $1;
-       //asd_add_child($1, $2); 
     }
 ;
 
@@ -392,8 +351,7 @@ lista_argumentos:
 //token TK_DECIMAL ou pelo token TK_INTEIRO.
 comando_retorno:
     TK_RETORNA expressao TK_ATRIB tipo{
-        $$ = asd_new("retorna");
-        asd_add_child($$, $2); 
+        $$ = new_node_from_unary_op("retorna", $2);   
     }
 ; 
 
@@ -404,9 +362,7 @@ construcoes_fluxo_controle:
 
 comando_condicional:
     TK_SE '(' expressao ')' bloco_comandos senao_opcional{
-        $$ = asd_new("se");
-        asd_add_child($$, $3);
-        asd_add_child($$, $5);
+        $$ = new_node_from_binary_op("se", $3, $5);
         if($6 != NULL) asd_add_child($$, $6); 
     }
 ;
@@ -418,9 +374,8 @@ senao_opcional:
 
 comando_enquanto:
     TK_ENQUANTO '(' expressao ')' bloco_comandos {
-        $$ = asd_new("enquanto");
-        asd_add_child($$, $3);
-        asd_add_child($$, $5);
+        $$ = new_node_from_binary_op("enquanto", $3, $5);
+        
     }
 ;
 
@@ -432,9 +387,7 @@ expressao:
 // Nível 7: OU Lógico (Menor Precedência)
 expr_nivel7:
     expr_nivel7 '|' expr_nivel6 {
-        $$ = asd_new("|"); 
-        asd_add_child($$, $1); 
-        asd_add_child($$, $3); 
+        $$ = new_node_from_binary_op("|", $1, $3);
     }
     | expr_nivel6  { $$ = $1; }
 ;
@@ -442,9 +395,7 @@ expr_nivel7:
 // Nível 6: E Lógico
 expr_nivel6:
     expr_nivel6 '&' expr_nivel5  { 
-        $$ = asd_new("&"); 
-        asd_add_child($$, $1); 
-        asd_add_child($$, $3); 
+        $$ = new_node_from_binary_op("&", $1, $3);
     }
     | expr_nivel5 { $$ = $1; }
 ;
@@ -452,14 +403,12 @@ expr_nivel6:
 // Nível 5: Operadores de Igualdade (==, !=)
 expr_nivel5:
     expr_nivel5 TK_OC_EQ expr_nivel4 {
-        $$ = asd_new("=="); 
-        asd_add_child($$, $1); 
-        asd_add_child($$, $3); 
+        $$ = new_node_from_binary_op("==", $1, $3);
+
     }
     | expr_nivel5 TK_OC_NE expr_nivel4 {
-        $$ = asd_new("!="); 
-        asd_add_child($$, $1); 
-        asd_add_child($$, $3);     
+        $$ = new_node_from_binary_op("!=", $1, $3);
+ 
     }
     | expr_nivel4 { $$ = $1; }
 ;
@@ -467,24 +416,20 @@ expr_nivel5:
 // Nível 4: Operadores Relacionais (<, >, <=, >=)
 expr_nivel4:
     expr_nivel4 '<' expr_nivel3 {
-        $$ = asd_new("<"); 
-        asd_add_child($$, $1); 
-        asd_add_child($$, $3);
+        $$ = new_node_from_binary_op("<", $1, $3);
+
     }
     | expr_nivel4 '>' expr_nivel3{
-        $$ = asd_new(">"); 
-        asd_add_child($$, $1); 
-        asd_add_child($$, $3);
+        $$ = new_node_from_binary_op(">", $1, $3);
+
     }
     | expr_nivel4 TK_OC_LE expr_nivel3{
-        $$ = asd_new("<="); 
-        asd_add_child($$, $1); 
-        asd_add_child($$, $3);
+        $$ = new_node_from_binary_op("<=", $1, $3);
+
     }
     | expr_nivel4 TK_OC_GE expr_nivel3{
-        $$ = asd_new(">="); 
-        asd_add_child($$, $1); 
-        asd_add_child($$, $3);
+        $$ = new_node_from_binary_op(">=", $1, $3);
+
     }
     | expr_nivel3 { $$ = $1; }
 ;
@@ -492,14 +437,12 @@ expr_nivel4:
 // Nível 3: Soma e Subtração (Binários)
 expr_nivel3:
     expr_nivel3 '+' expr_nivel2{
-        $$ = asd_new("+"); 
-        asd_add_child($$, $1); 
-        asd_add_child($$, $3);
+        $$ = new_node_from_binary_op("+", $1, $3);
+
     }
     | expr_nivel3 '-' expr_nivel2 {
-        $$ = asd_new("-"); 
-        asd_add_child($$, $1); 
-        asd_add_child($$, $3);
+        $$ = new_node_from_binary_op("-", $1, $3);
+
     }
     | expr_nivel2 { $$ = $1; }
 ;
@@ -507,19 +450,15 @@ expr_nivel3:
 // Nível 2: Multiplicação, Divisão, Resto
 expr_nivel2:
     expr_nivel2 '*' expr_nivel1 {
-        $$ = asd_new("*"); 
-        asd_add_child($$, $1); 
-        asd_add_child($$, $3);
+        $$ = new_node_from_binary_op("*", $1, $3);
+
     }
     | expr_nivel2 '/' expr_nivel1 {
-        $$ = asd_new("/"); 
-        asd_add_child($$, $1); 
-        asd_add_child($$, $3); 
-    }
+        $$ = new_node_from_binary_op("/", $1, $3);
+
+}
     | expr_nivel2 '%' expr_nivel1 {
-        $$ = asd_new("%"); 
-        asd_add_child($$, $1); 
-        asd_add_child($$, $3);
+        $$ = new_node_from_binary_op("%", $1, $3);
     }
     | expr_nivel1 { $$ = $1; }
 ;
@@ -529,16 +468,13 @@ expr_nivel2:
 // Por isso, a recursão aqui é à direita.
 expr_nivel1:
     '+' expr_nivel1 {
-        $$ = asd_new("+"); 
-        asd_add_child($$, $2);       
+        $$ = new_node_from_unary_op("+", $2);   
     }
     | '-' expr_nivel1 {
-        $$ = asd_new("-"); 
-        asd_add_child($$, $2);
+        $$ = new_node_from_unary_op("-", $2); 
     }
     | '!' expr_nivel1 {
-        $$ = asd_new("!"); 
-        asd_add_child($$, $2);
+        $$ = new_node_from_unary_op("!", $2); 
     }
     | fator { $$ = $1; }
 ;
@@ -547,9 +483,7 @@ expr_nivel1:
 // Inclui literais, identificadores, chamadas de função e expressões entre parênteses.
 fator:
     TK_ID {
-        $$ = asd_new($1->value);
-        free($1->value);
-        free($1);
+       $$ = new_node_from_lexval($1); 
     }
     | literal { $$ = $1; }
     | chamada_funcao { $$ = $1; }
@@ -565,4 +499,31 @@ void yyerror (char const *mensagem)
 {
     // Imprime uma mensagem de erro para a saida informando a linha onde o erro ocorreu e a mensagem do parser.
     printf("Linha %d: %s\n ", yylineno, mensagem);
+}
+
+/*  =====================================================
+    =================== Funcoes =========================
+    =====================================================
+*/ 
+//new node from token/lex value
+//lex values are e.g $1, $2, NULL
+asd_tree_t* new_node_from_lexval(lexical_value_t *lexval) {
+    if (lexval == NULL) return NULL;
+    asd_tree_t *node = asd_new(lexval->value);    
+    free(lexval->value);
+    free(lexval);
+    return node;
+}
+
+asd_tree_t* new_node_from_binary_op(const char *label, asd_tree_t *child1, asd_tree_t *child2) {
+    asd_tree_t *node = asd_new(label);
+    asd_add_child(node, child1);
+    asd_add_child(node, child2);
+    return node;
+}
+
+asd_tree_t* new_node_from_unary_op(const char *label, asd_tree_t *child) {
+    asd_tree_t *node = asd_new(label);
+    asd_add_child(node, child);
+    return node;
 }

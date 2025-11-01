@@ -48,6 +48,11 @@ TESTES_FALHA=(
     "teste_5_7_err_type_if.txt:30"
     "teste_5_8_err_type_while.txt:30"
     "teste_5_9_err_type_init.txt:30"
+
+    ##
+    "teste_7_1_err_missing_args.txt:40"
+    "teste_7_2_err_excess_args.txt:41"
+    "teste_7_3_err_wrong_type_args.txt:42"
 )
 
 # --- Funções de Teste (rodar_teste_sucesso, rodar_teste_falha) ---

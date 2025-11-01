@@ -18,6 +18,7 @@ typedef struct asd_tree {
   int number_of_children;
   struct asd_tree **children;
   semantic_type_t data_type; //add e4
+  int line;
 } asd_tree_t;
 
 /*

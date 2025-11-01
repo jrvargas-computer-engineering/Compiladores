@@ -14,7 +14,7 @@ main -> inteiro :=
 EOF
 
 cat > teste_1_2_sucesso_funcao.txt << EOF
-f -> inteiro () := [
+f -> inteiro := [
     retorna 10 := inteiro
 ],
 main -> inteiro :=
@@ -26,9 +26,9 @@ EOF
 
 cat > teste_1_3_sucesso_shadowing.txt << EOF
 var x := inteiro,
-f -> inteiro () := [
-    var x := flutuante; 
-    x := 10.5;
+f -> inteiro := [
+    var x := decimal
+    x := 10.5
     retorna 5 := inteiro
 ],
 main -> inteiro :=
@@ -43,9 +43,9 @@ var x := inteiro,
 main -> inteiro :=
 [
     [
-        var y := inteiro;
+        var y := inteiro
         [
-            var z := inteiro;
+            var z := inteiro
             x := y + z 
         ]
     ]
@@ -129,11 +129,11 @@ main -> inteiro :=
 EOF
 
 cat > teste_2_4_err_undeclared_escopo_funcao.txt << EOF
-f1 -> inteiro () := [
+f1 -> inteiro := [
     var x := inteiro
 ],
 
-f2 -> inteiro () := [
+f2 -> inteiro := [
     x := 10 
 ]
 ;
@@ -143,15 +143,15 @@ EOF
 
 cat > teste_3_1_err_declared_global.txt << EOF
 var x := inteiro,
-var y := flutuante,
+var y := decimal,
 var x := inteiro 
 ;
 EOF
 
 cat > teste_3_2_err_declared_funcao.txt << EOF
-f -> inteiro () := [ ],
-g -> inteiro () := [ ],
-f -> flutuante () := [ ] 
+f -> inteiro := [ ],
+g -> inteiro := [ ],
+f -> decimal := [ ] 
 ;
 EOF
 
@@ -160,10 +160,10 @@ main -> inteiro :=
 [
     var x := inteiro
     [
-        var y := inteiro;
-        var x := flutuante 
+        var y := inteiro
+        var x := decimal 
     ]
-    var x := flutuante 
+    var x := decimal 
 ]
 ;
 EOF
@@ -181,10 +181,10 @@ EOF
 
 # Corrigido: Declara 'x' para isolar o erro ERR_FUNCTION
 cat > teste_4_2_err_function.txt << EOF
-f -> inteiro () := [ ],
+f -> inteiro := [ ],
 main -> inteiro :=
 [
-    var x := inteiro;
+    var x := inteiro
     x := f + 5 
 ]
 ;
@@ -192,7 +192,7 @@ EOF
 
 cat > teste_4_3_err_function_atrib.txt << EOF
 var x := inteiro,
-f -> inteiro () := [ ],
+f -> inteiro := [ ],
 main -> inteiro :=
 [
     x := f 
@@ -305,4 +305,44 @@ main -> inteiro :=
 ;
 EOF
 
+# === NOVA CATEGORIA 6: Testes de ERR_ARGS (Passo 7) ===
+echo "Criando novos testes de FALHA (Passo 7: Erros de Argumentos)..."
+
+cat > teste_7_1_err_missing_args.txt << EOF
+soma -> inteiro com a := inteiro, b := inteiro :=
+[
+    retorna a + b := inteiro
+],
+main -> inteiro :=
+[
+    soma(5) 
+]
+;
+EOF
+
+cat > teste_7_2_err_excess_args.txt << EOF
+soma -> inteiro com a := inteiro :=
+[
+    retorna a := inteiro
+],
+main -> inteiro :=
+[
+    soma(5, 10) 
+]
+;
+EOF
+
+cat > teste_7_3_err_wrong_type_args.txt << EOF
+soma -> inteiro com a := inteiro, b := decimal :=
+[
+    retorna a := inteiro
+],
+main -> inteiro :=
+[
+    var f := decimal
+    f := 10.5
+    soma(5, f) 
+]
+;
+EOF
 echo "Todos os novos arquivos de teste foram criados!"

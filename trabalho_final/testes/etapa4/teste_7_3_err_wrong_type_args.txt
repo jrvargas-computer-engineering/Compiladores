@@ -1,0 +1,11 @@
+soma -> inteiro com a := inteiro, b := decimal :=
+[
+    retorna a := inteiro
+],
+main -> inteiro :=
+[
+    var f := decimal
+    f := 10.5
+    soma(5, f) 
+]
+;

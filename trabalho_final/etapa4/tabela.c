@@ -156,8 +156,7 @@ symbol_t* symbol_create_param(const char* key, semantic_type_t type, int line) {
     symbol->nature = SYMBOL_ID;
     symbol->data_type = type;                  
     symbol->line = line;                       
-    // 4. Preenche os campos que não se aplicam com NULL/0
-    symbol->token_data = NULL; // Não temos o token original
+    symbol->token_data = NULL; 
     symbol->arg_types = NULL;
     symbol->num_args = 0;
     
@@ -165,41 +164,49 @@ symbol_t* symbol_create_param(const char* key, semantic_type_t type, int line) {
 }
 
 int count_params(asd_tree_t* param_node) {
-    if (param_node == NULL) {
-        return 0; 
-    }
-    int count = 1;    
-    if (param_node->number_of_children > 0) {
-        count += count_params(param_node->children[0]);
+    if (param_node == NULL)
+        return 0;
+
+    int count = 1;
+    for (int i = 0; i < param_node->number_of_children; i++) {
+        count += count_params(param_node->children[i]);
     }
     return count;
 }
 
 static void _extract_recursive(
-    table_t* table,             // O novo escopo da função
-    asd_tree_t* node,           // O nó do parâmetro atual
-    semantic_type_t* type_array, // O vetor para salvar os tipos
-    int* index                  // O índice atual no vetor
+    table_t* table,
+    asd_tree_t* node,
+    semantic_type_t* type_array,
+    int* index
 ) {
     if (node == NULL) {
         return;
     }
+
     const char* name = node->label;
-    semantic_type_t type = node->data_type;    
+    semantic_type_t type = node->data_type;
+
+    /* guarda o tipo atual na posição index */
     type_array[*index] = type;
-    
-    // Verifica se o parâmetro já foi declarado NESTE escopo
+
+    /* checa duplicado e insere símbolo de parâmetro no novo escopo */
     if (table_find(table, name) != NULL) {
         yyerror_semantic("Parametro com nome duplicado.", 0, ERR_DECLARED);
     }
     symbol_t* param_sym = symbol_create_param(name, type, 0 /* node->line */);
     table_insert(table, param_sym);
-    
+
     (*index)++;
-    if (node->number_of_children > 0) {
-        _extract_recursive(table, node->children[0], type_array, index);
+
+    /* percorre TODOS os filhos (ordem esquerda -> direita) */
+    for (int i = 0; i < node->number_of_children; i++) {
+        _extract_recursive(table, node->children[i], type_array, index);
     }
 }
+
+
+
 semantic_type_t* extract_and_store_params(
     table_t* table,         // O novo escopo (tabela_funcao)
     asd_tree_t* param_node, // A árvore de parâmetros ($4)
@@ -215,4 +222,34 @@ semantic_type_t* extract_and_store_params(
     int index = 0;
     _extract_recursive(table, param_node, arg_types, &index);
     return arg_types; 
+}
+static void _check_types_recursive(symbol_t* func, asd_tree_t* arg, int* index) {
+    if (arg == NULL)
+        return;
+
+    if (*index >= func->num_args) {
+        yyerror_semantic("Argumentos em excesso na chamada da funcao.", arg->line, ERR_EXCESS_ARGS);
+    }
+
+    semantic_type_t expected_type = func->arg_types[*index];
+    semantic_type_t provided_type = arg->data_type;
+
+    if (expected_type != provided_type) {
+        yyerror_semantic("Argumento de tipo incompativel.", arg->line, ERR_WRONG_TYPE_ARGS);
+    }
+
+    (*index)++;
+
+    for (int i = 0; i < arg->number_of_children; i++) {
+        _check_types_recursive(func, arg->children[i], index);
+    }
+}
+void check_argument_types(symbol_t* func_symbol, asd_tree_t* arg_node) {
+    if (func_symbol->num_args == 0 && arg_node == NULL)
+        return;
+
+    if (arg_node != NULL) {
+        int index = 0;
+        _check_types_recursive(func_symbol, arg_node, &index);
+    }
 }

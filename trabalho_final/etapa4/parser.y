@@ -463,9 +463,25 @@ chamada_funcao:
             yyerror_semantic("Variavel usada como funcao.", $1->line, ERR_VARIABLE);
         }
 
+
+        //conta argumentos e compara
+        int provided_arg_count = count_params($3);
+        if (provided_arg_count < simbolo->num_args) {
+            yyerror_semantic("Faltam argumentos na chamada da funcao.", $1->line, ERR_MISSING_ARGS);
+        }    
+        if (provided_arg_count > simbolo->num_args) {
+            yyerror_semantic("Argumentos em excesso na chamada da funcao.", $1->line, ERR_EXCESS_ARGS);
+        }
+        //compara os tipos
+        if (simbolo->num_args > 0 && provided_arg_count == simbolo->num_args) {
+            check_argument_types(simbolo, $3);
+        }
+        
         char label[256];
         sprintf(label, "call %s", $1->value);
         $$ = asd_new(label);
+        
+        $$->line = $1->line;
         $$->data_type = simbolo->data_type;
 
         if ($3 != NULL) asd_add_child($$, $3);
@@ -485,7 +501,7 @@ lista_argumentos_opcional:
 lista_argumentos:
     expressao{
         $$ = $1; 
-    }//mexi aqui na ordem da recursao
+    }
     | expressao ',' lista_argumentos  {
         $$ = $1;
         asd_add_child($$, $3);
@@ -498,7 +514,7 @@ lista_argumentos:
 comando_retorno:
     TK_RETORNA expressao TK_ATRIB tipo{
         if ($2->data_type != $4) {
-             yyerror_semantic("Tipo de retorno incompativel com a declaracao da funcao.", 0, ERR_WRONG_TYPE);
+             yyerror_semantic("Tipo de retorno incompativel com a declaracao da funcao.", $2->line, ERR_WRONG_TYPE);
         }
         $$ = new_node_from_unary_op("retorna", $2);  
         $$->data_type = $2->data_type; 
@@ -513,7 +529,7 @@ construcoes_fluxo_controle:
 comando_condicional:
     TK_SE '(' expressao ')' bloco_comandos senao_opcional{
         if ($3->data_type != SEMANTIC_TYPE_INT) {
-            yyerror_semantic("Expressao de teste do 'se' deve ser do tipo inteiro.", 0, ERR_WRONG_TYPE);
+            yyerror_semantic("Expressao de teste do 'se' deve ser do tipo inteiro.", $3->line, ERR_WRONG_TYPE);
         }
         $$ = new_node_from_binary_op("se", $3, $5);
         if($6 != NULL) asd_add_child($$, $6); 
@@ -529,7 +545,7 @@ senao_opcional:
 comando_enquanto:
     TK_ENQUANTO '(' expressao ')' bloco_comandos {
         if ($3->data_type != SEMANTIC_TYPE_INT) {
-            yyerror_semantic("Expressao de teste do 'enquanto' deve ser do tipo inteiro.", 0, ERR_WRONG_TYPE);
+            yyerror_semantic("Expressao de teste do 'enquanto' deve ser do tipo inteiro.", $3->line, ERR_WRONG_TYPE);
         }
         $$ = new_node_from_binary_op("enquanto", $3, $5);
         $$->data_type = SEMANTIC_TYPE_INT; 
@@ -613,7 +629,7 @@ expr_nivel2:
     }
     | expr_nivel2 '%' expr_nivel1 {
         if ($1->data_type != SEMANTIC_TYPE_INT || $3->data_type != SEMANTIC_TYPE_INT) {
-            yyerror_semantic("Operador de resto (%) aplicado a float.", 0, ERR_WRONG_TYPE);
+            yyerror_semantic("Operador de resto (%) aplicado a float.", $1->line, ERR_WRONG_TYPE);
         }
         $$ = new_node_from_binary_op_arit("%", $1, $3);
     }
@@ -634,7 +650,7 @@ expr_nivel1:
     }
     | '!' expr_nivel1 {
     if ($2->data_type != SEMANTIC_TYPE_INT) {
-             yyerror_semantic("Negacao logica (!) aplicada a um float.", 0, ERR_WRONG_TYPE);
+             yyerror_semantic("Negacao logica (!) aplicada a um float.", $2->line, ERR_WRONG_TYPE);
         }
         $$ = new_node_from_unary_op("!", $2);
         $$->data_type = SEMANTIC_TYPE_INT; 
@@ -684,6 +700,8 @@ void yyerror_semantic(const char *mensagem, int line, int error_code) {
 asd_tree_t* new_node_from_lexval(lexical_value_t *lexval) {
     if (lexval == NULL) return NULL;
     asd_tree_t *node = asd_new(lexval->value);    
+    //adicionado E4
+    node->line = lexval->line;
     free(lexval->value);
     free(lexval);
     return node;
@@ -705,26 +723,32 @@ asd_tree_t* new_node_from_unary_op(const char *label, asd_tree_t *child) {
 
 asd_tree_t* new_node_from_binary_op_arit(const char *label, asd_tree_t *child1, asd_tree_t *child2) {
     if (child1->data_type != child2->data_type) {
-        yyerror_semantic("Tipos incompativeis em operacao aritmetica.", 0, ERR_WRONG_TYPE);
+        yyerror_semantic("Tipos incompativeis em operacao aritmetica.", child1->line, ERR_WRONG_TYPE);
+        //add e4
+        return NULL;
+
     }
 
     asd_tree_t *node = asd_new(label);
     asd_add_child(node, child1);
     asd_add_child(node, child2);
 
+    node->line = child1->line;  
     node->data_type = child1->data_type; 
-    
     return node;
 }
 
 
 asd_tree_t* new_node_from_binary_op_rel_log(const char *label, asd_tree_t *child1, asd_tree_t *child2) {
     if (child1->data_type != child2->data_type) {
-        yyerror_semantic("Tipos incompativeis em operacao relacional/logica.", 0, ERR_WRONG_TYPE); 
+        yyerror_semantic("Tipos incompativeis em operacao relacional/logica.", child1->line, ERR_WRONG_TYPE); 
+        //add e4
+        return NULL;
     }
     asd_tree_t *node = asd_new(label);
     asd_add_child(node, child1); 
     asd_add_child(node, child2); 
+    node->line = child1->line;  
     node->data_type = SEMANTIC_TYPE_INT; 
     return node;
 }

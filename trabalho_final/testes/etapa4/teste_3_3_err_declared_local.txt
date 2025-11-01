@@ -1,0 +1,10 @@
+main -> inteiro :=
+[
+    var x := inteiro
+    [
+        var y := inteiro
+        var x := decimal 
+    ]
+    var x := decimal 
+]
+;

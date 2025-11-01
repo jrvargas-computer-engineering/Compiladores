@@ -1,0 +1,5 @@
+main -> decimal :=
+[
+    retorna 5 := decimal 
+]
+;

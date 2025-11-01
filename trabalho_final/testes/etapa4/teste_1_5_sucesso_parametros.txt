@@ -1,0 +1,12 @@
+soma -> inteiro com a := inteiro, b := inteiro :=
+[
+    retorna a + b := inteiro
+],
+
+main -> inteiro :=
+[
+    var resultado := inteiro
+    resultado := soma(5, 10)
+    retorna resultado := inteiro
+]
+;

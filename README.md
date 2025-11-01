@@ -97,3 +97,7 @@ make
 ./etapa3 < tests/teste_completo1.txt > saida.dot
 dot saida.dot -Tpng -o arvore.png
 ```
+
+# Etapa 4
+
+## Log de Mudanças

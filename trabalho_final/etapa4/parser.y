@@ -3,47 +3,55 @@
 // Sofia Popsin Gomes - 00313563
 
 %{
-
-// ================= codigo em C ========================
 #include <stdio.h>
 #include <stdlib.h>
 #include "asd.h"
-
+#include "tabela.h"
 int yylex(void);
 void yyerror (char const *mensagem);
-
-
+void yyerror_semantic(const char *mensagem, int line, int error_code);
 extern asd_tree_t *arvore;
 %}
 
 
-// ================= declaracoes do bison ========================
+/*  =====================================================
+    =============== Declaracoes do Bison ================
+    =====================================================
+*/ 
 %code requires { 
     #include "asd.h" 
-    
-    // estrutura de valor lexico
-    typedef struct lexical_value {
-      int line;
-      int type; 
-      char *value;
-    } lexical_value_t;
-    
+    #include "tabela.h"    
+    asd_tree_t* new_node_from_lexval(lexical_value_t *lexval);
+    asd_tree_t* new_node_from_binary_op(const char *label, asd_tree_t *child1, asd_tree_t *child2);
+    asd_tree_t* new_node_from_unary_op(const char *label, asd_tree_t *child);
+    asd_tree_t* new_node_from_binary_op_arit(const char *label, asd_tree_t *child1, asd_tree_t *child2);
+    asd_tree_t* new_node_from_binary_op_rel_log(const char *label, asd_tree_t *child1, asd_tree_t *child2);
 }
-%define parse.error verbose // Para mensagens de erro detalhadas 
+%define parse.error verbose //Para mensagens de erro detalhadas 
 
+/*
+Para
+ simplificar esse procedimento, os nós da AST devem
+ ser anotados com um tipo de dado definido de acordo
+ com as regras de inferência de tipos. Um nó da AST
+ deve ter portanto um novo campo que registra o seu
+ tipo de dado. 
+*/
 %union {
   lexical_value_t *valor_lex;
   asd_tree_t *arvore;
+  semantic_type_t semantic_type;
 }
-// ===============================================================
-
-// ================= tokens da linguagem =========================
+/*  =====================================================
+    =============== Tokens da Linguagem =================
+    =====================================================
+*/ 
 //tokens com "valor de conteudo" carregam informacao
 //vao virar folhas posteriormente
 %token<valor_lex> TK_ID
 %token<valor_lex> TK_LI_INTEIRO
 %token<valor_lex> TK_LI_DECIMAL
-
+%type <semantic_type> tipo
 //sem valor
 %token TK_SENAO TK_SE TK_RETORNA TK_ATRIB TK_ENQUANTO TK_COM TK_SETA
 %token TK_TIPO TK_VAR TK_DECIMAL TK_INTEIRO
@@ -62,21 +70,17 @@ extern asd_tree_t *arvore;
 %type <arvore> lista_argumentos_opcional lista_argumentos
 %type <arvore> construcoes_fluxo_controle comando_condicional senao_opcional comando_enquanto
 %type <arvore> expressao expr_nivel7 expr_nivel6 expr_nivel5 expr_nivel4 expr_nivel3 expr_nivel2 expr_nivel1 fator
-// ===============================================================
-
-
-
-// ====================  Regras da gramatica  ====================  
+%type <arvore> escopo_ini escopo_fim escopo_bloco_ini escopo_bloco_fim
 %%
-/*
-programa: lista ';';
-programa: %empty;
-lista: elemento;
-lista: lista ',' elemento;
-elemento: TK_INTEIRO ',' TK_DECIMAL;
-*/
 
-// ==========  Estrutura do programa ==========
+
+
+
+/*  =====================================================
+    =============== Regras da Gramatica  ================
+    =====================================================
+*/ 
+
 
 // Um programa eh composto por uma lista opcional de elementos
 // a lista eh terminada pelo operador ponto-e-virgula
@@ -85,32 +89,27 @@ programa:
         $$ = NULL;
         arvore = $$;
     }
-    | lista_elementos ';' {
-        $$ = $1;
+    // escopo global
+    | escopo_ini lista_elementos escopo_fim ';' {
+        $$ = $2;
         arvore = $$;
     }
 ; 
 
+escopo_ini:
+    %empty {
+        table_t* tabela_global = table_create(); 
+        scope_stack_push(tabela_global);
+        $$ = NULL;
+    }
+;
 
-//
-
-programa: escopo_ini lista escopo_fim ';'
-escopo_ini: %empty {
-    /*
-    tabela nao eh no 
-    1. cria tabela vazia
-    2. empilha essa tabela
-    */
- }; //
-escopo_fim: %empty; {
-    /*
-    1. desempilha tabela do topo
-    2. free "profundo da tabela"
-    aqui faz free de todos os elementos da tabela
- */
-} 
-
-//
+escopo_fim:
+    %empty {
+        table_t* tabela_global = scope_stack_pop();
+        table_free(tabela_global);
+        $$ = NULL; 
+    }
  
 //Cada elemento dessa lista eh ou uma definicao de funcao 
 //ou uma declaracao de variavel 
@@ -142,28 +141,56 @@ elemento:
 
 
 // ==========  Definicao de funcao  ==========
-
 definicao_funcao: 
-    //cabecalho_funcao corpo_funcao *DESTRUICAO DO ESCOPO DA FUNCAO AQUI*{
     cabecalho_funcao corpo_funcao {
         $$ = $1;
         if($2 != NULL)
             asd_add_child($$, $2); 
+
+        //definicao funcao eh onde escopo eh destruido
+        table_t* tabela_funcao = scope_stack_pop();
+        table_free(tabela_funcao);
     }
 ;
-
-//nome da funcao no escopo global
-//criaria o escopo, por exemplo
-//*COLOCAR NO ESCOPO GLOBAL* TK_ID TK_SETA tipo *ACAO DE CRIACAO DO ESCOPO* lista_opicional_parametros TK_ATRIB{
-//TK_ID TK_SETA tipo -> colocar isso num nao terminal, talvez, que gere a acao vazia que coloca no escopo
-
 
 cabecalho_funcao: 
     TK_ID TK_SETA tipo lista_opicional_parametros TK_ATRIB{
+        //$$ = new_node_from_lexval($1); 
+
         $$ = asd_new($1->value); 
+        $$->data_type = $3; 
+
+        //$4 NAO DEVE SER adicionada na arvore
+        //pensar sobre depois
+        //if ($4 != NULL) {
+        //    asd_add_child($$, $4);
+        //}    
+
+        /* CRIAR ESCOPO DA FUNCAO */
+        table_t* tabela_funcao = table_create();
+
+
+        int num_args = 0;
+        semantic_type_t* arg_types = extract_and_store_params(tabela_funcao, $4, &num_args);
+        
+        //aqui os parametros serao colocados na tabela ($4)
+        table_t* escopo_pai = scope_stack_peek();
+        
+        if (table_find(escopo_pai, $1->value) != NULL) {
+            yyerror_semantic("Funcao ja declarada.", $1->line, ERR_DECLARED);
+        }
+        symbol_t* func_symbol = symbol_create_func($1, $3, num_args, arg_types); 
+        table_insert(escopo_pai, func_symbol); 
+        
+
+        scope_stack_push(tabela_funcao);
+        free(arg_types);
+        //asd_free($4);
+        //free($1->value);
+        //free($1);    
+
     }
 ;
-
 
 //A lista de parametros, quando presente, 
 //consiste no token opcional TK_COM seguido de uma lista, 
@@ -180,13 +207,11 @@ lista_opicional_parametros:
 
 lista_parametros:
     parametro {
-        $$ = $1; //fix
-        //$$ = asd_new("com");
-        //asd_add_child($$, $1);
+        $$ = $1; 
     }
     | parametro ',' lista_parametros  {
         $$ = $1;
-        asd_add_child($$, $3);
+        asd_add_child($$, $3); 
     }
 ;
 
@@ -196,11 +221,12 @@ lista_parametros:
 //seguido ou do token TK_INTEIRO ou do token TK_DECIMAL.
 parametro:
     TK_ID TK_ATRIB tipo {
-        $$ = asd_new($1->value);
-        free($1->value);
-        free($1); 
+        $$ = new_node_from_lexval($1); 
+        if ($$) {
+            $$->data_type = $3; // <-- CORREÇÃO
+        }
     }
-; 
+;
 
 // O corpo eh um bloco de comandos 
 corpo_funcao:
@@ -212,51 +238,86 @@ corpo_funcao:
 // ==========  Declaracao de variaveis  ==========
 declaracao_variavel_s_ini: // Sem inicialização
     TK_VAR TK_ID TK_ATRIB tipo {
-        
-        //fix: tirei criacao de nodo aqui
+       
+        //pegar o escopo atual
+        table_t* escopo_atual = scope_stack_peek();
+
+        //verifica se simbolo esta declarado neste escopo 
+        if (table_find(escopo_atual, $2->value) != NULL) {
+            yyerror_semantic("Identificador ja declarado.", $2->line, ERR_DECLARED);
+        }
+        symbol_t* novo_simbolo = symbol_create_var($2, $4);
+        table_insert(escopo_atual, novo_simbolo);     
         $$ = NULL;
-        //$$ = asd_new("variavel");
-        //asd_tree_t* tk_id_no = asd_new($2->value);
-        //asd_add_child($$, tk_id_no);
-        free($2->value);
-        free($2); 
+        
+        //o ponteiro $2 agora esta salvo na tabela de simbolos
+        //free($2->value);
+        //free($2); 
     }
 ;
 
 tipo:
-    TK_DECIMAL
-    | TK_INTEIRO
-; //nao gera no AST
+    TK_DECIMAL {$$ = SEMANTIC_TYPE_FLOAT; }
+    | TK_INTEIRO {$$ = SEMANTIC_TYPE_INT; }
+; //nao gera no AST , mas agora retorna valor
+// para o parser
 
 
 //POSSIVEL ERRO AQUI
 // Regra "geral" que aponta para as regras específicas de tipo
 declaracao_variavel_c_ini_opcional:
     TK_VAR TK_ID TK_ATRIB TK_INTEIRO inicializacao_inteiro_opcional{
+        
+        table_t* escopo_atual = scope_stack_peek();
+        //verifica se simbolo esta declarado neste escopo 
+        if (table_find(escopo_atual, $2->value) != NULL) {
+            yyerror_semantic("Identificador ja declarado.", $2->line, ERR_DECLARED);
+        }
+        
+        symbol_t* novo_simbolo = symbol_create_var($2, SEMANTIC_TYPE_INT);
+        table_insert(escopo_atual, novo_simbolo);
+        
         if($5 == NULL){
             $$ = NULL;
         }
         else{
+            if ($5->data_type != SEMANTIC_TYPE_INT) {
+                yyerror_semantic("Inicializacao incompativel. Esperava 'inteiro'.", $2->line, ERR_WRONG_TYPE);
+            }
             $$ = asd_new("com"); 
             asd_tree_t* tk_id_no = asd_new($2->value);
             asd_add_child($$, tk_id_no);
             asd_add_child($$, $5);
         }
-            free($2->value);
-            free($2);
+        //free($2->value);
+        //free($2);
     }
     | TK_VAR TK_ID TK_ATRIB TK_DECIMAL inicializacao_decimal_opcional{
+       
+        table_t* escopo_atual = scope_stack_peek();
+        
+        //verifica se simbolo esta declarado neste escopo 
+        if (table_find(escopo_atual, $2->value) != NULL) {
+            yyerror_semantic("Identificador ja declarado.", $2->line, ERR_DECLARED);
+        }
+       
+        symbol_t* novo_simbolo = symbol_create_var($2, SEMANTIC_TYPE_FLOAT);
+        table_insert(escopo_atual, novo_simbolo);
+        
         if($5 == NULL){
             $$ = NULL; 
         }
         else{
+            if ($5->data_type != SEMANTIC_TYPE_FLOAT) {
+                yyerror_semantic("Inicializacao incompativel. Esperava 'decimal'.", $2->line, ERR_WRONG_TYPE);
+            }
             $$ = asd_new("com"); 
             asd_tree_t* tk_id_no = asd_new($2->value);
             asd_add_child($$, tk_id_no);
             asd_add_child($$, $5);
         }
-        free($2->value);
-        free($2);
+        //free($2->value);
+        //free($2);
     }
 ;
 
@@ -266,9 +327,8 @@ declaracao_variavel_c_ini_opcional:
 inicializacao_inteiro_opcional:
     %empty {$$ = NULL;}
     | TK_COM TK_LI_INTEIRO {
-        $$ = asd_new($2->value); 
-        free($2->value);
-        free($2);        
+        $$ = new_node_from_lexval($2); 
+        $$->data_type = SEMANTIC_TYPE_INT;         
     }
 ;
 
@@ -277,27 +337,24 @@ inicializacao_decimal_opcional:
     %empty {$$ = NULL;}
     // Aceita literal decimal
     | TK_COM TK_LI_DECIMAL   { 
-        $$ = asd_new($2->value);
-        free($2->value);
-        free($2);
+        $$ = new_node_from_lexval($2); 
+        $$->data_type = SEMANTIC_TYPE_FLOAT; 
+
     }
     | TK_COM TK_LI_INTEIRO  {// E também aceita literal inteiro (ex: var d := decimal com 5)
-        $$ = asd_new($2->value);
-        free($2->value);
-        free($2);  
+        $$ = new_node_from_lexval($2); 
+        $$->data_type = SEMANTIC_TYPE_INT; 
     }
 ;
 
 literal:
     TK_LI_INTEIRO {
-        $$ = asd_new($1->value);
-        free($1->value);
-        free($1);
+        $$ = new_node_from_lexval($1); 
+        $$->data_type = SEMANTIC_TYPE_INT; 
     }
     | TK_LI_DECIMAL {
-        $$ = asd_new($1->value);
-        free($1->value);
-        free($1);
+        $$ = new_node_from_lexval($1); 
+        $$->data_type = SEMANTIC_TYPE_FLOAT; 
     }
 ;
 // ==========  Comandos  ==========
@@ -322,15 +379,27 @@ comando_simples:
 //é considerado como um comando único simples
 //e pode ser utilizado em qualquer construção que
 //aceite um comando simples.
-
-//** nao precisa criar escopo de um bloco vazio 
-
 bloco_comandos:
-    '[' lista_comando_simples_opcionais ']'{
-        $$ = $2;
+    '['escopo_bloco_ini lista_comando_simples_opcionais escopo_bloco_fim']'{
+        $$ = $3;
     } // apenas propaga lista de comandos
 ;
 
+escopo_bloco_ini:
+    %empty {
+        table_t* tabela_bloco = table_create(); 
+        scope_stack_push(tabela_bloco);
+        $$ = NULL;   
+    }
+;
+
+escopo_bloco_fim: 
+    %empty {
+        table_t* tabela_bloco = scope_stack_pop();
+        table_free(tabela_bloco);
+        $$ = NULL;
+    }
+;
 
 lista_comando_simples_opcionais:
     %empty {$$ = NULL;}
@@ -339,7 +408,6 @@ lista_comando_simples_opcionais:
 
 lista_comando_simples:
     comando_simples{
-        //$$ = $1;  mudei aqui
         if($1 == NULL ){$$ = NULL;} else{$$ = $1;} 
     }
     | comando_simples lista_comando_simples  {
@@ -350,17 +418,31 @@ lista_comando_simples:
             $$ = $1;
             asd_add_child($1, $2);    
         } 
-
-       //$$ = $1;
-       //asd_add_child($1, $2); 
     }
 ;
 
 // Consiste no token TK_ID seguido do token TK_ATRIB seguido de uma expressão
 comando_atribuicao:
     TK_ID TK_ATRIB expressao {
+        symbol_t* simbolo = stack_find_global($1->value);
+        
+        if (simbolo == NULL) {
+            yyerror_semantic("Identificador nao declarado.", $1->line, ERR_UNDECLARED);
+        }
+        if (simbolo->nature == SYMBOL_FUNCAO) {
+            yyerror_semantic("Funcao usada como variavel em atribuicao.", $1->line, ERR_FUNCTION);
+        }
+
+        // 4. (Passo 6) Verifique os tipos
+        // (Será feito no Passo 6, mas a informação está aqui)
+        // if (simbolo->data_type != $3->data_type) { ... }
+        if (simbolo->data_type != $3->data_type) {
+            yyerror_semantic("Atribuicao de tipo incompativel.", $1->line, ERR_WRONG_TYPE);
+        }
+
         $$ = asd_new(":="); 
         asd_tree_t* tk_id_no = asd_new($1->value);
+        tk_id_no->data_type = simbolo->data_type;
         asd_add_child($$, tk_id_no); 
         asd_add_child($$, $3);      
         free($1->value);
@@ -371,10 +453,21 @@ comando_atribuicao:
 // consiste no token TK_ID, seguida de argumentos entre parênteses,
 chamada_funcao:
     TK_ID '(' lista_argumentos_opcional ')' {
+        symbol_t* simbolo = stack_find_global($1->value);   
+        
+        if (simbolo == NULL) {
+            yyerror_semantic("Funcao nao declarada.", $1->line, ERR_UNDECLARED);
+        }     
+
+        if (simbolo->nature == SYMBOL_ID) {
+            yyerror_semantic("Variavel usada como funcao.", $1->line, ERR_VARIABLE);
+        }
+
         char label[256];
         sprintf(label, "call %s", $1->value);
         $$ = asd_new(label);
-        
+        $$->data_type = simbolo->data_type;
+
         if ($3 != NULL) asd_add_child($$, $3);
         free($1->value);
         free($1);       
@@ -404,8 +497,11 @@ lista_argumentos:
 //token TK_DECIMAL ou pelo token TK_INTEIRO.
 comando_retorno:
     TK_RETORNA expressao TK_ATRIB tipo{
-        $$ = asd_new("retorna");
-        asd_add_child($$, $2); 
+        if ($2->data_type != $4) {
+             yyerror_semantic("Tipo de retorno incompativel com a declaracao da funcao.", 0, ERR_WRONG_TYPE);
+        }
+        $$ = new_node_from_unary_op("retorna", $2);  
+        $$->data_type = $2->data_type; 
     }
 ; 
 
@@ -416,10 +512,12 @@ construcoes_fluxo_controle:
 
 comando_condicional:
     TK_SE '(' expressao ')' bloco_comandos senao_opcional{
-        $$ = asd_new("se");
-        asd_add_child($$, $3);
-        asd_add_child($$, $5);
+        if ($3->data_type != SEMANTIC_TYPE_INT) {
+            yyerror_semantic("Expressao de teste do 'se' deve ser do tipo inteiro.", 0, ERR_WRONG_TYPE);
+        }
+        $$ = new_node_from_binary_op("se", $3, $5);
         if($6 != NULL) asd_add_child($$, $6); 
+        $$->data_type = SEMANTIC_TYPE_INT;
     }
 ;
 
@@ -430,9 +528,11 @@ senao_opcional:
 
 comando_enquanto:
     TK_ENQUANTO '(' expressao ')' bloco_comandos {
-        $$ = asd_new("enquanto");
-        asd_add_child($$, $3);
-        asd_add_child($$, $5);
+        if ($3->data_type != SEMANTIC_TYPE_INT) {
+            yyerror_semantic("Expressao de teste do 'enquanto' deve ser do tipo inteiro.", 0, ERR_WRONG_TYPE);
+        }
+        $$ = new_node_from_binary_op("enquanto", $3, $5);
+        $$->data_type = SEMANTIC_TYPE_INT; 
     }
 ;
 
@@ -444,9 +544,7 @@ expressao:
 // Nível 7: OU Lógico (Menor Precedência)
 expr_nivel7:
     expr_nivel7 '|' expr_nivel6 {
-        $$ = asd_new("|"); 
-        asd_add_child($$, $1); 
-        asd_add_child($$, $3); 
+        $$ = new_node_from_binary_op_rel_log("|", $1, $3);
     }
     | expr_nivel6  { $$ = $1; }
 ;
@@ -454,9 +552,7 @@ expr_nivel7:
 // Nível 6: E Lógico
 expr_nivel6:
     expr_nivel6 '&' expr_nivel5  { 
-        $$ = asd_new("&"); 
-        asd_add_child($$, $1); 
-        asd_add_child($$, $3); 
+        $$ = new_node_from_binary_op_rel_log("&", $1, $3);
     }
     | expr_nivel5 { $$ = $1; }
 ;
@@ -464,14 +560,12 @@ expr_nivel6:
 // Nível 5: Operadores de Igualdade (==, !=)
 expr_nivel5:
     expr_nivel5 TK_OC_EQ expr_nivel4 {
-        $$ = asd_new("=="); 
-        asd_add_child($$, $1); 
-        asd_add_child($$, $3); 
+        $$ = new_node_from_binary_op_rel_log("==", $1, $3);
+
     }
     | expr_nivel5 TK_OC_NE expr_nivel4 {
-        $$ = asd_new("!="); 
-        asd_add_child($$, $1); 
-        asd_add_child($$, $3);     
+        $$ = new_node_from_binary_op_rel_log("!=", $1, $3);
+ 
     }
     | expr_nivel4 { $$ = $1; }
 ;
@@ -479,24 +573,20 @@ expr_nivel5:
 // Nível 4: Operadores Relacionais (<, >, <=, >=)
 expr_nivel4:
     expr_nivel4 '<' expr_nivel3 {
-        $$ = asd_new("<"); 
-        asd_add_child($$, $1); 
-        asd_add_child($$, $3);
+        $$ = new_node_from_binary_op_rel_log("<", $1, $3);
+
     }
     | expr_nivel4 '>' expr_nivel3{
-        $$ = asd_new(">"); 
-        asd_add_child($$, $1); 
-        asd_add_child($$, $3);
+        $$ = new_node_from_binary_op_rel_log(">", $1, $3);
+
     }
     | expr_nivel4 TK_OC_LE expr_nivel3{
-        $$ = asd_new("<="); 
-        asd_add_child($$, $1); 
-        asd_add_child($$, $3);
+        $$ = new_node_from_binary_op_rel_log("<=", $1, $3);
+
     }
     | expr_nivel4 TK_OC_GE expr_nivel3{
-        $$ = asd_new(">="); 
-        asd_add_child($$, $1); 
-        asd_add_child($$, $3);
+        $$ = new_node_from_binary_op_rel_log(">=", $1, $3);
+
     }
     | expr_nivel3 { $$ = $1; }
 ;
@@ -504,14 +594,11 @@ expr_nivel4:
 // Nível 3: Soma e Subtração (Binários)
 expr_nivel3:
     expr_nivel3 '+' expr_nivel2{
-        $$ = asd_new("+"); 
-        asd_add_child($$, $1); 
-        asd_add_child($$, $3);
+        $$ = new_node_from_binary_op_arit("+", $1, $3);
     }
     | expr_nivel3 '-' expr_nivel2 {
-        $$ = asd_new("-"); 
-        asd_add_child($$, $1); 
-        asd_add_child($$, $3);
+        $$ = new_node_from_binary_op_arit("-", $1, $3);
+
     }
     | expr_nivel2 { $$ = $1; }
 ;
@@ -519,19 +606,16 @@ expr_nivel3:
 // Nível 2: Multiplicação, Divisão, Resto
 expr_nivel2:
     expr_nivel2 '*' expr_nivel1 {
-        $$ = asd_new("*"); 
-        asd_add_child($$, $1); 
-        asd_add_child($$, $3);
+        $$ = new_node_from_binary_op_arit("*", $1, $3);
     }
     | expr_nivel2 '/' expr_nivel1 {
-        $$ = asd_new("/"); 
-        asd_add_child($$, $1); 
-        asd_add_child($$, $3); 
+        $$ = new_node_from_binary_op_arit("/", $1, $3);
     }
     | expr_nivel2 '%' expr_nivel1 {
-        $$ = asd_new("%"); 
-        asd_add_child($$, $1); 
-        asd_add_child($$, $3);
+        if ($1->data_type != SEMANTIC_TYPE_INT || $3->data_type != SEMANTIC_TYPE_INT) {
+            yyerror_semantic("Operador de resto (%) aplicado a float.", 0, ERR_WRONG_TYPE);
+        }
+        $$ = new_node_from_binary_op_arit("%", $1, $3);
     }
     | expr_nivel1 { $$ = $1; }
 ;
@@ -541,16 +625,19 @@ expr_nivel2:
 // Por isso, a recursão aqui é à direita.
 expr_nivel1:
     '+' expr_nivel1 {
-        $$ = asd_new("+"); 
-        asd_add_child($$, $2);       
+        $$ = new_node_from_unary_op("+", $2);   
+        $$->data_type = $2->data_type;
     }
     | '-' expr_nivel1 {
-        $$ = asd_new("-"); 
-        asd_add_child($$, $2);
+        $$ = new_node_from_unary_op("-", $2); 
+        $$->data_type = $2->data_type;
     }
     | '!' expr_nivel1 {
-        $$ = asd_new("!"); 
-        asd_add_child($$, $2);
+    if ($2->data_type != SEMANTIC_TYPE_INT) {
+             yyerror_semantic("Negacao logica (!) aplicada a um float.", 0, ERR_WRONG_TYPE);
+        }
+        $$ = new_node_from_unary_op("!", $2);
+        $$->data_type = SEMANTIC_TYPE_INT; 
     }
     | fator { $$ = $1; }
 ;
@@ -559,9 +646,15 @@ expr_nivel1:
 // Inclui literais, identificadores, chamadas de função e expressões entre parênteses.
 fator:
     TK_ID {
-        $$ = asd_new($1->value);
-        free($1->value);
-        free($1);
+        symbol_t* simbolo = stack_find_global($1->value);
+        if (simbolo == NULL) {
+            yyerror_semantic("Identificador nao declarado.", $1->line, ERR_UNDECLARED);
+        }
+        if (simbolo->nature == SYMBOL_FUNCAO) {
+            yyerror_semantic("Funcao usada como variavel.", $1->line, ERR_FUNCTION);
+        }
+        $$ = new_node_from_lexval($1); 
+        $$->data_type = simbolo->data_type;
     }
     | literal { $$ = $1; }
     | chamada_funcao { $$ = $1; }
@@ -573,8 +666,65 @@ fator:
 extern int yylineno;
  
 // Função chamada pelo yyparse ao encontrar um erro sintático.
-void yyerror (char const *mensagem)
-{
-    // Imprime uma mensagem de erro para a saida informando a linha onde o erro ocorreu e a mensagem do parser.
+void yyerror (char const *mensagem) {
     printf("Linha %d: %s\n ", yylineno, mensagem);
+}
+
+void yyerror_semantic(const char *mensagem, int line, int error_code) {
+    printf("Erro semantico (Linha %d): %s\n", line, mensagem);     
+    exit(error_code); 
+}
+
+/*  =====================================================
+    =================== Funcoes =========================
+    =====================================================
+*/ 
+//new node from token/lex value
+//lex values are e.g $1, $2, NULL
+asd_tree_t* new_node_from_lexval(lexical_value_t *lexval) {
+    if (lexval == NULL) return NULL;
+    asd_tree_t *node = asd_new(lexval->value);    
+    free(lexval->value);
+    free(lexval);
+    return node;
+}
+
+asd_tree_t* new_node_from_binary_op(const char *label, asd_tree_t *child1, asd_tree_t *child2) {
+    asd_tree_t *node = asd_new(label);
+    asd_add_child(node, child1);
+    asd_add_child(node, child2);
+    return node;
+}
+
+asd_tree_t* new_node_from_unary_op(const char *label, asd_tree_t *child) {
+    asd_tree_t *node = asd_new(label);
+    asd_add_child(node, child);
+    return node;
+}
+
+
+asd_tree_t* new_node_from_binary_op_arit(const char *label, asd_tree_t *child1, asd_tree_t *child2) {
+    if (child1->data_type != child2->data_type) {
+        yyerror_semantic("Tipos incompativeis em operacao aritmetica.", 0, ERR_WRONG_TYPE);
+    }
+
+    asd_tree_t *node = asd_new(label);
+    asd_add_child(node, child1);
+    asd_add_child(node, child2);
+
+    node->data_type = child1->data_type; 
+    
+    return node;
+}
+
+
+asd_tree_t* new_node_from_binary_op_rel_log(const char *label, asd_tree_t *child1, asd_tree_t *child2) {
+    if (child1->data_type != child2->data_type) {
+        yyerror_semantic("Tipos incompativeis em operacao relacional/logica.", 0, ERR_WRONG_TYPE); 
+    }
+    asd_tree_t *node = asd_new(label);
+    asd_add_child(node, child1); 
+    asd_add_child(node, child2); 
+    node->data_type = SEMANTIC_TYPE_INT; 
+    return node;
 }

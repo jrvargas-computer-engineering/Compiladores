@@ -55,6 +55,46 @@ TESTES_FALHA=(
     "teste_7_3_err_wrong_type_args.txt:42"
 )
 
+OUTROS_TESTES=(
+    "simplesnaovazio.txt"
+    "teste_completo.txt"
+    "vazio.txt"
+    "redeclaracao_var_com_dec_nestada.txt"
+    "redeclaracao_var_com_int_nestada.txt"
+    "redeclaracao_var_dec_nestada.txt"
+    "redeclaracao_var_int_nestada.txt"
+)
+
+OUTROS_TESTES_FALHA=(
+    "teste.txt:10"
+    "atribuicao_nao_declarada.txt:10"
+    "func_nao_declarada.txt:10"
+    "func_usada_como_var.txt:21"
+    "operando_nao_declarado.txt:10"
+    "redeclaracao_func_dec.txt:11"
+    "redeclaracao_func_int.txt:11"
+    "redeclaracao_var_global_dec.txt:11"
+    "redeclaracao_var_global_int.txt:11"
+    "var_usada_como_func.txt:20"
+)
+
+TESTES_PARAMETROS=(
+    "teste_8_1_sucesso_funcao_sem_param.txt"
+    "teste_8_3_sucesso_dois_params.txt"
+    "teste_8_6_sucesso_promocao.txt"
+    "teste_8_8_sucesso_aninhada.txt"
+    "teste_8_9_sucesso_promocao_cascata.txt"
+)
+
+TESTES_PARAMETROS_FALHA=(
+    "teste_8_2_err_excesso_sem_param.txt:41"
+    "teste_8_4_err_missing_arg.txt:40"
+    "teste_8_5_err_excesso_args.txt:41"
+    "teste_8_7_err_tipo_incompativel.txt:42"
+    "teste_8_10_mistos_ok_erro.txt:42"
+
+)
+
 # --- Funções de Teste (rodar_teste_sucesso, rodar_teste_falha) ---
 # (Cole as funções da sua versão anterior do script aqui)
 # (Elas já estão corretas, com a captura de erro e
@@ -182,6 +222,27 @@ echo "--- 2. Testes de Falha (Devem retornar códigos de erro) ---"
 for teste in "${TESTES_FALHA[@]}"; do
     rodar_teste_falha "$teste"
 done
+
+echo "--- 3. Outros testes ---"
+for teste in "${OUTROS_TESTES[@]}"; do
+    rodar_teste_sucesso "$teste"
+done
+
+echo "--- 4. Outros testes falha---"
+for teste in "${OUTROS_TESTES_FALHA[@]}"; do
+    rodar_teste_falha "$teste"
+done
+
+echo "--- 5. Testes parâmetros sucesso ---"
+for teste in "${TESTES_PARAMETROS[@]}"; do
+    rodar_teste_sucesso "$teste"
+done
+
+echo "--- 6. Testes parâmetros falha---"
+for teste in "${TESTES_PARAMETROS_FALHA[@]}"; do
+    rodar_teste_falha "$teste"
+done
+
 
 
 echo ""

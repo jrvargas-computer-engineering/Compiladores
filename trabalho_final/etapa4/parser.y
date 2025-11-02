@@ -5,8 +5,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
-#include "asd.h"
-#include "tabela.h"
+#include "parser_helpers.h"
 int yylex(void);
 void yyerror (char const *mensagem);
 void yyerror_semantic(const char *mensagem, int line, int error_code);
@@ -19,13 +18,7 @@ extern asd_tree_t *arvore;
     =====================================================
 */ 
 %code requires { 
-    #include "asd.h" 
-    #include "tabela.h"    
-    asd_tree_t* new_node_from_lexval(lexical_value_t *lexval);
-    asd_tree_t* new_node_from_binary_op(const char *label, asd_tree_t *child1, asd_tree_t *child2);
-    asd_tree_t* new_node_from_unary_op(const char *label, asd_tree_t *child);
-    asd_tree_t* new_node_from_binary_op_arit(const char *label, asd_tree_t *child1, asd_tree_t *child2);
-    asd_tree_t* new_node_from_binary_op_rel_log(const char *label, asd_tree_t *child1, asd_tree_t *child2);
+    #include "parser_helpers.h"
 }
 %define parse.error verbose //Para mensagens de erro detalhadas 
 
@@ -74,14 +67,10 @@ Para
 %%
 
 
-
-
 /*  =====================================================
     =============== Regras da Gramatica  ================
     =====================================================
 */ 
-
-
 // Um programa eh composto por uma lista opcional de elementos
 // a lista eh terminada pelo operador ponto-e-virgula
 programa:
@@ -323,7 +312,7 @@ declaracao_variavel_c_ini_opcional:
 
 
 //POSSIVEL ERRO AQUI
-// Regra específica para inicialização de INTEIROS
+//Regra específica para inicialização de INTEIROS
 inicializacao_inteiro_opcional:
     %empty {$$ = NULL;}
     | TK_COM TK_LI_INTEIRO {
@@ -366,7 +355,7 @@ literal:
 //trole.
 comando_simples:
     bloco_comandos { $$ = $1; }
-    | declaracao_variavel_c_ini_opcional { if($1 == NULL ){$$ = NULL;} else{$$ = $1;} } //mudei aqui
+    | declaracao_variavel_c_ini_opcional { if($1 == NULL ){$$ = NULL;} else{$$ = $1;} } 
     | comando_atribuicao { $$ = $1; }
     | chamada_funcao { $$ = $1; }
     | comando_retorno { $$ = $1; }
@@ -450,11 +439,11 @@ comando_atribuicao:
     }
 ; 
 
-// consiste no token TK_ID, seguida de argumentos entre parênteses,
+// consiste no token TK_ID, seguida de argumentos entre parenteses,
 chamada_funcao:
     TK_ID '(' lista_argumentos_opcional ')' {
         symbol_t* simbolo = stack_find_global($1->value);   
-        
+
         if (simbolo == NULL) {
             yyerror_semantic("Funcao nao declarada.", $1->line, ERR_UNDECLARED);
         }     
@@ -689,66 +678,4 @@ void yyerror (char const *mensagem) {
 void yyerror_semantic(const char *mensagem, int line, int error_code) {
     printf("Erro semantico (Linha %d): %s\n", line, mensagem);     
     exit(error_code); 
-}
-
-/*  =====================================================
-    =================== Funcoes =========================
-    =====================================================
-*/ 
-//new node from token/lex value
-//lex values are e.g $1, $2, NULL
-asd_tree_t* new_node_from_lexval(lexical_value_t *lexval) {
-    if (lexval == NULL) return NULL;
-    asd_tree_t *node = asd_new(lexval->value);    
-    //adicionado E4
-    node->line = lexval->line;
-    free(lexval->value);
-    free(lexval);
-    return node;
-}
-
-asd_tree_t* new_node_from_binary_op(const char *label, asd_tree_t *child1, asd_tree_t *child2) {
-    asd_tree_t *node = asd_new(label);
-    asd_add_child(node, child1);
-    asd_add_child(node, child2);
-    return node;
-}
-
-asd_tree_t* new_node_from_unary_op(const char *label, asd_tree_t *child) {
-    asd_tree_t *node = asd_new(label);
-    asd_add_child(node, child);
-    return node;
-}
-
-
-asd_tree_t* new_node_from_binary_op_arit(const char *label, asd_tree_t *child1, asd_tree_t *child2) {
-    if (child1->data_type != child2->data_type) {
-        yyerror_semantic("Tipos incompativeis em operacao aritmetica.", child1->line, ERR_WRONG_TYPE);
-        //add e4
-        return NULL;
-
-    }
-
-    asd_tree_t *node = asd_new(label);
-    asd_add_child(node, child1);
-    asd_add_child(node, child2);
-
-    node->line = child1->line;  
-    node->data_type = child1->data_type; 
-    return node;
-}
-
-
-asd_tree_t* new_node_from_binary_op_rel_log(const char *label, asd_tree_t *child1, asd_tree_t *child2) {
-    if (child1->data_type != child2->data_type) {
-        yyerror_semantic("Tipos incompativeis em operacao relacional/logica.", child1->line, ERR_WRONG_TYPE); 
-        //add e4
-        return NULL;
-    }
-    asd_tree_t *node = asd_new(label);
-    asd_add_child(node, child1); 
-    asd_add_child(node, child2); 
-    node->line = child1->line;  
-    node->data_type = SEMANTIC_TYPE_INT; 
-    return node;
 }

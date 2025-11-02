@@ -8,7 +8,7 @@ CC=gcc
 TARGET = etapa4
 
 # arquivos de objeto
-OBJ = main.o parser.tab.o lex.yy.o asd.o tabela.o
+OBJ = main.o parser.tab.o lex.yy.o asd.o tabela.o parser_helpers.o
 
 #flags
 CFLAGS = -g -Wall -Werror #-fsanitize=address
@@ -22,7 +22,7 @@ $(TARGET): $(OBJ)
 	$(CC) $(CFLAGS) -c  $< -o $@
 	
 # Bison 
-parser.tab.c parser.tab.h: parser.y tabela.h asd.h types.h
+parser.tab.c parser.tab.h: parser.y tabela.h asd.h types.h parser_helpers.h
 	bison -d parser.y
 
 #flex executado se scanner.l ou parser.tab.h foram alterados

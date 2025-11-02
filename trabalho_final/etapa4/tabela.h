@@ -76,4 +76,8 @@ symbol_t* symbol_create_literal(lexical_value_t *token_data, semantic_type_t typ
 int count_params(asd_tree_t* param_node);
 semantic_type_t* extract_and_store_params(table_t* table, asd_tree_t* param_node, int* out_num_args);
 void check_argument_types(symbol_t* func_symbol, asd_tree_t* arg_node);
+
+
+/*debug */
+void print_arg_tree(asd_tree_t* node, int depth); 
 #endif 

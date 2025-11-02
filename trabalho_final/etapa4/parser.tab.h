@@ -45,17 +45,11 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 21 "parser.y"
+#line 20 "parser.y"
  
-    #include "asd.h" 
-    #include "tabela.h"    
-    asd_tree_t* new_node_from_lexval(lexical_value_t *lexval);
-    asd_tree_t* new_node_from_binary_op(const char *label, asd_tree_t *child1, asd_tree_t *child2);
-    asd_tree_t* new_node_from_unary_op(const char *label, asd_tree_t *child);
-    asd_tree_t* new_node_from_binary_op_arit(const char *label, asd_tree_t *child1, asd_tree_t *child2);
-    asd_tree_t* new_node_from_binary_op_rel_log(const char *label, asd_tree_t *child1, asd_tree_t *child2);
+    #include "parser_helpers.h"
 
-#line 59 "parser.tab.h"
+#line 53 "parser.tab.h"
 
 /* Token kinds.  */
 #ifndef YYTOKENTYPE
@@ -93,13 +87,13 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 40 "parser.y"
+#line 33 "parser.y"
 
   lexical_value_t *valor_lex;
   asd_tree_t *arvore;
   semantic_type_t semantic_type;
 
-#line 103 "parser.tab.h"
+#line 97 "parser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

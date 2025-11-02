@@ -235,17 +235,14 @@ int count_params(asd_tree_t* param_node) {
         return 0;
     }
 
-    if (param_node->label && strncmp(param_node->label, "call", 4) == 0) {
-        return 1;
-    }
 
-    // Caso 2: nó é uma lista linear (ex: a -> b -> c)
+    if (param_node->label && strncmp(param_node->label, "call", 4) == 0) {
+        return 1 + count_params(param_node->children[1]);
+    }
     if (param_node->number_of_children == 1) {
         return 1 + count_params(param_node->children[0]);
     }
-
     if (param_node->number_of_children > 1) {
-
         int count = 0;
         //GAMBIARRA AQUI, PARA RESOLVER CASOS (NUMERO + NUMERO)
         if (param_node->label && is_operator_label(param_node->label)){
@@ -268,14 +265,12 @@ int count_params(asd_tree_t* param_node) {
         }
         return count;
     }
-
     if (param_node->number_of_children == 0) {
         if (param_node->data_type == SEMANTIC_TYPE_INT ||
             param_node->data_type == SEMANTIC_TYPE_FLOAT) {
             return 1;
         }
     }
-
     return 0;
 }
 

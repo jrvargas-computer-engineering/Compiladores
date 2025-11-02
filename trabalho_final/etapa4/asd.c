@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include "asd.h"
 #include "diretivas.h"
-#define ARQUIVO_SAIDA "saida.dot"
 
 asd_tree_t *asd_new(const char *label)
 {

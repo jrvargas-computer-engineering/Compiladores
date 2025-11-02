@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "asd.h"
+#include "diretivas.h"
 #define ARQUIVO_SAIDA "saida.dot"
 
 asd_tree_t *asd_new(const char *label)
@@ -18,8 +19,10 @@ asd_tree_t *asd_new(const char *label)
     ret->children = NULL;
     ret->value = 0;
     ret->data_type = SEMANTIC_TYPE_UNDEFINED; 
-    //DEBUG
-    //printf("[DEBUG] Criando nó: %s (%p)\n", label, (void*)ret);
+    
+    #ifdef DEBUG_ON
+    printf("[DEBUG] Criando nó: %s (%p)\n", label, (void*)ret);
+    #endif
 
   }
   return ret;
@@ -38,7 +41,9 @@ void asd_free(asd_tree_t *tree)
     free(tree->label);
     free(tree);
   }else{
+    #ifdef DEBUG_ON
     printf("ASDFREE Erro: %s recebeu parâmetro tree = %p.\n", __FUNCTION__, tree);
+    #endif
     free(NULL);
   }
 }
@@ -50,7 +55,9 @@ void asd_add_child(asd_tree_t *tree, asd_tree_t *child)
     tree->children = realloc(tree->children, tree->number_of_children * sizeof(asd_tree_t*));
     tree->children[tree->number_of_children-1] = child;
   }else{
+    #ifdef DEBUG_ON
     printf("ASD_ADD_CHILD Erro: %s recebeu parâmetro tree = %p / %p.\n", __FUNCTION__, tree, child);
+    #endif
   }
 }
 
@@ -63,7 +70,9 @@ static void _asd_print (FILE *foutput, asd_tree_t *tree, int profundidade)
       _asd_print(foutput, tree->children[i], profundidade+1);
     }
   }else{
+    #ifdef DEBUG_ON
     printf("_ASD_PRINT Erro: %s recebeu parâmetro tree = %p.\n", __FUNCTION__, tree);
+    #endif
   }
 }
 
@@ -73,7 +82,9 @@ void asd_print(asd_tree_t *tree)
   if (tree != NULL){
     _asd_print(foutput, tree, 0);
   }else{
+    #ifdef DEBUG_ON
     printf("ASD_PRINT Erro: %s recebeu parâmetro tree = %p.\n", __FUNCTION__, tree);
+    #endif
   }
 }
 
@@ -88,7 +99,9 @@ static void _asd_print_graphviz (FILE *foutput, asd_tree_t *tree)
       _asd_print_graphviz(foutput, tree->children[i]);
     }
   }else{
+    #ifdef DEBUG_ON
     printf("_ASD_PRINT_GRAPHVIZ Erro: %s recebeu parâmetro tree = %p.\n", __FUNCTION__, tree);
+    #endif
   }
 }
 
@@ -96,16 +109,13 @@ void asd_print_graphviz(asd_tree_t *tree)
 {
 
   FILE *foutput = stdout;  
-  //FILE *foutput = fopen(ARQUIVO_SAIDA, "w");//mudei de w+ para w
-  //if(foutput == NULL){
-  //  printf("Erro: %s não pude abrir o arquivo [%s] para escrita.\n", __FUNCTION__, ARQUIVO_SAIDA);
-  //}
   if (tree != NULL){
     fprintf(foutput, "digraph grafo {\n");
     _asd_print_graphviz(foutput, tree);
     fprintf(foutput, "}\n");
-    //fclose(foutput);
   }else{
+    #ifdef DEBUG_ON
     printf("ASD_PRINT_GRAPHVIZ Erro: %s recebeu parâmetro tree = %p.\n", __FUNCTION__, tree);
+    #endif
   }
 }

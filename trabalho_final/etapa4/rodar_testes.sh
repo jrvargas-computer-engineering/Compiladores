@@ -14,86 +14,94 @@ CINZA='\033[0;90m'
 RESET='\033[0m'
 
 # --- Listas de Testes (Apenas os nomes dos arquivos) ---
-
 TESTES_SUCESSO=(
-    "teste_1_1_sucesso_simples.txt"
-    "teste_1_2_sucesso_funcao.txt"
-    "teste_1_3_sucesso_shadowing.txt"
-    "teste_1_4_sucesso_aninhado.txt"
-    "teste_1_5_sucesso_parametros.txt"
-    # === NOVOS TESTES (Passo 6) ===
-    "teste_1_6_sucesso_arit_float.txt"
-    "teste_1_7_sucesso_rel_log_int.txt"
+    "1_10_grupo_teste.txt"
+    "1_12_grupo_vazio.txt"
+    "1_1_teste_1_1_sucesso_simples.txt"
+    "1_2_teste_1_2_sucesso_funcao.txt"
+    "1_3_teste_1_3_sucesso_shadowing.txt"
+    "1_4_teste_1_4_sucesso_aninhado.txt"
+    "1_5_teste_1_5_sucesso_parametros.txt"
+    "1_6_teste_1_6_sucesso_arit_float.txt"
+    "1_7_teste_1_7_sucesso_rel_log_int.txt"
+    "1_8_grupo_simplesnaovazio.txt"
+    "3_8_grupo_redeclaracao_var_dec_nestada.txt"
+    "3_9_grupo_redeclaracao_var_int_nestada.txt"
+    "3_10_grupo_redeclaracao_var_com_int_nestada.txt"
+    "3_11_grupo_redeclaracao_var_com_dec_nestada.txt"
+    "6_4_1_8_1_sucesso_funcao_sem_param.txt"
+    "6_4_6_8_8_sucesso_aninhada.txt"  
+    "6_4_3_8_3_sucesso_dois_params.txt"
+    "6_5_sucesso_3_params.txt"
+    "6_6_operacao_parametros.txt"
 )
 
-TESTES_FALHA=(
-    # (Passo 4/5)
-    "teste_2_1_err_undeclared_var.txt:10"
-    "teste_2_2_err_undeclared_funcao.txt:10"
-    "teste_2_3_err_undeclared_escopo.txt:10"
-    "teste_2_4_err_undeclared_escopo_funcao.txt:10"
-    "teste_3_1_err_declared_global.txt:11"
-    "teste_3_2_err_declared_funcao.txt:11"
-    "teste_3_3_err_declared_local.txt:11"
-    "teste_4_1_err_variable.txt:20"
-    "teste_4_2_err_function.txt:21"
-    "teste_4_3_err_function_atrib.txt:21"
-    # === NOVOS TESTES (Passo 6: ERR_WRONG_TYPE) ===
-    "teste_5_1_err_type_arit.txt:30"
-    "teste_5_2_err_type_rel.txt:30"
-    "teste_5_3_err_type_not.txt:30"
-    "teste_5_4_err_type_mod.txt:30"
-    "teste_5_5_err_type_atrib.txt:30"
-    "teste_5_6_err_type_retorno.txt:30"
-    "teste_5_7_err_type_if.txt:30"
-    "teste_5_8_err_type_while.txt:30"
-    "teste_5_9_err_type_init.txt:30"
-
-    ##
-    "teste_7_1_err_missing_args.txt:40"
-    "teste_7_2_err_excess_args.txt:41"
-    "teste_7_3_err_wrong_type_args.txt:42"
+TESTES_INT_FLOAT=(
+    "1_9_grupo_teste_completo.txt"
+    "1A_1_8_6_sucesso_promocao.txt"
+    "1A_1_8_9_sucesso_promocao_cascata.txt"
+    "1A_5_1_err_type_arit.txt"
+    "1A_5_2_err_type_rel.txt"
+    "1A_5_3_err_type_not.txt"
+    "1A_5_4_err_type_mod.txt"
+    "1A_5_5_err_type_atrib.txt"
+    "1A_5_9_err_type_init.txt"
 )
 
-OUTROS_TESTES=(
-    "simplesnaovazio.txt"
-    "teste_completo.txt"
-    "vazio.txt"
-    "redeclaracao_var_com_dec_nestada.txt"
-    "redeclaracao_var_com_int_nestada.txt"
-    "redeclaracao_var_dec_nestada.txt"
-    "redeclaracao_var_int_nestada.txt"
+TESTS_UNDECLARED=(
+    "2_1_teste_2_1_err_undeclared_var.txt:10"
+    "2_2_teste_2_2_err_undeclared_funcao.txt:10"
+    "2_3_teste_2_3_err_undeclared_escopo.txt:10"
+    "2_4_teste_2_4_err_undeclared_escopo_funcao.txt:10"
+    "2_5_grupo_operando_nao_declarado.txt:10"
+    "2_6_grupo_atribuicao_nao_declarada.txt:10"
+    "2_7_grupo_func_nao_declarada.txt:10"
 )
 
-OUTROS_TESTES_FALHA=(
-    "teste.txt:10"
-    "atribuicao_nao_declarada.txt:10"
-    "func_nao_declarada.txt:10"
-    "func_usada_como_var.txt:21"
-    "operando_nao_declarado.txt:10"
-    "redeclaracao_func_dec.txt:11"
-    "redeclaracao_func_int.txt:11"
-    "redeclaracao_var_global_dec.txt:11"
-    "redeclaracao_var_global_int.txt:11"
-    "var_usada_como_func.txt:20"
+TESTES_DUPLA_DECLARACAO=(
+    "3_1_teste_3_1_err_declared_global.txt:11"
+    "3_2_teste_3_2_err_declared_funcao.txt:11"
+    "3_3_teste_3_3_err_declared_local.txt:11"
+    "3_4_grupo_redeclaracao_func_dec.txt:11"
+    "3_5_grupo_redeclaracao_func_int.txt:11"
+    "3_6_grupo_redeclaracao_var_global_dec.txt:11"
+    "3_7_grupo_redeclaracao_var_global_int.txt:11"
 )
 
-TESTES_PARAMETROS=(
-    "teste_8_1_sucesso_funcao_sem_param.txt"
-    "teste_8_3_sucesso_dois_params.txt"
-    "teste_8_6_sucesso_promocao.txt"
-    "teste_8_8_sucesso_aninhada.txt"
-    "teste_8_9_sucesso_promocao_cascata.txt"
+TESTE_ERR_VARIABLE=(
+    "1_11_grupo_var_usada_como_func.txt:20"
+    "4_1_teste_4_1_err_variable_used_as_func.txt:20"
+    "4_5_grupo_var_usada_como_func.txt:20"
 )
 
-TESTES_PARAMETROS_FALHA=(
-    "teste_8_2_err_excesso_sem_param.txt:41"
-    "teste_8_4_err_missing_arg.txt:40"
-    "teste_8_5_err_excesso_args.txt:41"
-    "teste_8_7_err_tipo_incompativel.txt:42"
-    "teste_8_10_mistos_ok_erro.txt:42"
+TESTE_ERR_FUNCTION=(
+    "4_2_teste_4_2_err_function.txt:21"
+    "4_3_teste_4_3_err_function_atrib.txt:21"
+    "4_4_grupo_func_usada_como_var.txt:21"
+)
+
+TESTE_WRONG_TYPE=(
+    "5_2_teste_5_6_err_type_retorno.txt:30"
+    "5_3_teste_5_7_err_type_if.txt:30"
+    "5_4_teste_5_8_err_type_while.txt:30"
+)
+
+TESTE_MISSING_ARGS=(
+    "6_1_teste_7_1_err_missing_args.txt:40"
+    "6_4_4_8_4_err_missing_arg.txt:40"
 
 )
+TESTE_EXCESS_ARGS=(
+    "6_2_teste_7_2_err_excess_args.txt:41"
+    "6_4_2_8_2_err_excesso_sem_param.txt:41"
+    "6_4_5_8_5_err_excesso_args.txt:41"
+
+)
+TESTE_WRONG_TYPE_ARGS=(
+    "6_3_teste_7_3_err_wrong_type_args.txt:42"
+    "6_4_7_8_10_mistos_ok_erro.txt:42"
+)
+
 
 # --- Funções de Teste (rodar_teste_sucesso, rodar_teste_falha) ---
 # (Cole as funções da sua versão anterior do script aqui)
@@ -218,32 +226,51 @@ for teste in "${TESTES_SUCESSO[@]}"; do
 done
 
 echo ""
-echo "--- 2. Testes de Falha (Devem retornar códigos de erro) ---"
-for teste in "${TESTES_FALHA[@]}"; do
-    rodar_teste_falha "$teste"
-done
-
-echo "--- 3. Outros testes ---"
-for teste in "${OUTROS_TESTES[@]}"; do
+echo "--- 2. Testes com operação entre INT e FLOAT"
+for teste in "${TESTES_INT_FLOAT[@]}"; do
     rodar_teste_sucesso "$teste"
 done
 
-echo "--- 4. Outros testes falha---"
-for teste in "${OUTROS_TESTES_FALHA[@]}"; do
+echo ""
+echo "--- 3. Testes ERR_UNDECLARED ---"
+for teste in "${TESTS_UNDECLARED[@]}"; do
     rodar_teste_falha "$teste"
 done
 
-echo "--- 5. Testes parâmetros sucesso ---"
-for teste in "${TESTES_PARAMETROS[@]}"; do
-    rodar_teste_sucesso "$teste"
-done
-
-echo "--- 6. Testes parâmetros falha---"
-for teste in "${TESTES_PARAMETROS_FALHA[@]}"; do
+echo "--- 4. Testes ERR_DECLARED---"
+for teste in "${TESTES_DUPLA_DECLARACAO[@]}"; do
     rodar_teste_falha "$teste"
 done
 
+echo "--- 5. Testes ERR_VARIABLE ---"
+for teste in "${TESTE_ERR_VARIABLE[@]}"; do
+    rodar_teste_falha "$teste"
+done
 
+echo "--- 6. Testes  ERR_FUNCTION ---"
+for teste in "${TESTE_ERR_FUNCTION[@]}"; do
+    rodar_teste_falha "$teste"
+done
+
+echo "--- 6. Testes  WRONG_TYPE ---"
+for teste in "${TESTE_WRONG_TYPE[@]}"; do
+    rodar_teste_falha "$teste"
+done
+
+echo "--- 6. Testes  ERR_MISSING_ARGS ---"
+for teste in "${TESTE_MISSING_ARGS[@]}"; do
+    rodar_teste_falha "$teste"
+done
+
+echo "--- 6. Testes  ERR_EXCESS_ARGS ---"
+for teste in "${TESTE_EXCESS_ARGS[@]}"; do
+    rodar_teste_falha "$teste"
+done
+
+echo "--- 6. Testes  ERR_WRONG_TYPE_ARGS ---"
+for teste in "${TESTE_WRONG_TYPE_ARGS[@]}"; do
+    rodar_teste_falha "$teste"
+done
 
 echo ""
 echo "--- Resumo dos Testes ---"

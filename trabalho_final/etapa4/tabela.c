@@ -2,14 +2,38 @@
 #include <stdlib.h>
 #include <string.h>
 #include "tabela.h"
-
+#include "diretivas.h"
 #define STACK_MAX_SIZE 256  
 #define TABLE_INITIAL_CAPACITY 16 
-//#define DEBUG_ON
 
-/*
-implementar pilha com vetor de ponteiros, do tipo da tabela
+/*  =====================================================
+    ====================== Debug ========================
+    =====================================================
 */
+void print_arg_tree(asd_tree_t* node, int depth) {
+    if (!node) return;
+    for (int i = 0; i < depth; i++) printf("  ");
+    printf("arg: %s (%d filhos)\n", node->label, node->number_of_children);
+    for (int i = 0; i < node->number_of_children; i++) {
+        print_arg_tree(node->children[i], depth + 1);
+    }
+}
+
+
+/*  =====================================================
+    =============== Tabela de Escopos ===================
+    =====================================================
+    O escopo pode ser global, local da função 
+    e local de um bloco, sendo que este pode ser recursivamente
+    aninhado. Uma forma de se implementar estas 
+    regras de escopo é através de uma pilha de tabelas
+    de símbolos. Para verificar se uma variável foi declarada, 
+    verifica-se primeiramente no escopo atual (topo
+    da pilha) e enquanto não encontrar, deve-se descer na
+    pilha (sem desempilhar) até chegar no escopo global
+    (base da pilha, sempre presente). 
+*/ 
+
 static table_t* scope_stack[STACK_MAX_SIZE];
 static int stack_top = -1;
 
@@ -112,20 +136,26 @@ symbol_t* table_find(table_t* table, const char* key) {
 }
 
 
+
+/*  =====================================================
+    ===================== Símbolos ======================
+    =====================================================
+    Todos os identificadores devem ter sido declarados no
+    momento do seu uso, seja como variável, seja como
+    função. Todas as entradas na tabela de símbolos de
+    vem ter um tipo associado conforme a declaração,
+    verificando-se se não houve dupla declaração ou se o
+    símbolo não foi declarado. 
+*/
 static symbol_t* _symbol_alloc(lexical_value_t *token_data, symbol_nature_t nature, semantic_type_t type) {
     symbol_t* symbol = (symbol_t*) malloc(sizeof(symbol_t));
-    
     symbol->key = strdup(token_data->value);
-    
     symbol->nature = nature;              
     symbol->data_type = type;               
     symbol->token_data = token_data;     
-    
     symbol->line = token_data->line;
-
     symbol->arg_types = NULL;              
     symbol->num_args = 0;                  
-    
     return symbol;
 }
 
@@ -153,7 +183,6 @@ symbol_t* symbol_create_func(lexical_value_t *token_data, semantic_type_t return
         printf("  tipo arg[%d] = %d\n", i, symbol->arg_types[i]);
     }
     #endif
-
     return symbol;
 }
 
@@ -170,29 +199,86 @@ symbol_t* symbol_create_param(const char* key, semantic_type_t type, int line) {
     symbol->token_data = NULL; 
     symbol->arg_types = NULL;
     symbol->num_args = 0;
-    
     return symbol;
 }
 
 
-int count_params(asd_tree_t* param_node) {
-    if (param_node == NULL)
-        return 0;
+/*  =====================================================
+    ============== Contagem de Parâmetros ===============
+    =====================================================
+    A lista de argumentos fornecidos em uma chamada de
+    função deve ser verificada contra a lista de parâmetros
+    formais na declaração da mesma função. Cada chamada 
+    de função deve prover um argumento para cada
+    parâmetro, e ter o seu tipo compatıvel. Tais verificações
+    devem ser realizadas levando-se em conta as informações 
+    registradas na tabela de sımbolos, registradas no
+    momento da declaração/definição da função.
+    */
 
-    // Só conta se o nó tem tipo válido
-    int count = 0;
-    if (param_node->data_type == SEMANTIC_TYPE_INT ||
-        param_node->data_type == SEMANTIC_TYPE_FLOAT) {
-        count = 1;
+static int is_operator_label(const char* label) {
+    if (label == NULL) return 0;
+    const char* ops[] = {"+", "-", "*", "/", "%", ">", "<", ">=", "<=", "==", "!=", "&&", "||"};
+    for (int i = 0; i < (int)(sizeof(ops)/sizeof(ops[0])); i++) {
+        if (strcmp(label, ops[i]) == 0)
+            return 1;
     }
-
-    // O próximo argumento está sempre no primeiro filho, se existir
-    if (param_node->number_of_children == 1) {
-        count += count_params(param_node->children[0]);
-    }
-
-    return count;
+    return 0;
 }
+int count_params(asd_tree_t* param_node) {
+    #ifdef DEBUG_ON
+    printf("\n[DEBUG] Iniciando contagem de argumentos...\n");
+    print_arg_tree(param_node, 0);
+    #endif
+
+    if (param_node == NULL){
+        return 0;
+    }
+
+    if (param_node->label && strncmp(param_node->label, "call", 4) == 0) {
+        return 1;
+    }
+
+    // Caso 2: nó é uma lista linear (ex: a -> b -> c)
+    if (param_node->number_of_children == 1) {
+        return 1 + count_params(param_node->children[0]);
+    }
+
+    if (param_node->number_of_children > 1) {
+
+        int count = 0;
+        //GAMBIARRA AQUI, PARA RESOLVER CASOS (NUMERO + NUMERO)
+        if (param_node->label && is_operator_label(param_node->label)){
+            count--; 
+        }
+        for (int i = 0; i < param_node->number_of_children; i++) {
+            asd_tree_t* child = param_node->children[i];
+            if (child == NULL) continue;
+            if (child->label && strncmp(child->label, "call", 4) == 0) {
+                count++;
+                continue;
+            }
+
+            if (child->number_of_children > 0) {
+                count += count_params(child);
+            }
+            else if (child->data_type == SEMANTIC_TYPE_INT || child->data_type == SEMANTIC_TYPE_FLOAT) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    if (param_node->number_of_children == 0) {
+        if (param_node->data_type == SEMANTIC_TYPE_INT ||
+            param_node->data_type == SEMANTIC_TYPE_FLOAT) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 
 
 static void _extract_recursive(
@@ -204,14 +290,10 @@ static void _extract_recursive(
     if (node == NULL) {
         return;
     }
-
     const char* name = node->label;
     semantic_type_t type = node->data_type;
-
-    /* guarda o tipo atual na posição index */
     type_array[*index] = type;
 
-    /* checa duplicado e insere símbolo de parâmetro no novo escopo */
     if (table_find(table, name) != NULL) {
         yyerror_semantic("Parametro com nome duplicado.", 0, ERR_DECLARED);
     }
@@ -229,7 +311,6 @@ static void _extract_recursive(
            *index, node->number_of_children);
     #endif
 
-    /* percorre TODOS os filhos (ordem esquerda -> direita) */
     for (int i = 0; i < node->number_of_children; i++) {
         _extract_recursive(table, node->children[i], type_array, index);
     }
@@ -251,51 +332,45 @@ semantic_type_t* extract_and_store_params(
     semantic_type_t* arg_types = (semantic_type_t*) malloc(num_args * sizeof(semantic_type_t));    
     int index = 0;
     _extract_recursive(table, param_node, arg_types, &index);
-   
-   
     #ifdef DEBUG_ON
     printf("[extract_and_store_params] num_args=%d\n", num_args);
     for (int i = 0; i < num_args; i++) {
         printf("[extract_and_store_params] arg_types[%d] = %d\n", i, arg_types[i]);
     }
     #endif
-
     return arg_types; 
 }
-static void _check_types_recursive(symbol_t* func, asd_tree_t* arg, int* index) {
-    if (arg == NULL)
-        return;
 
-    // Verifica se este nó representa um argumento real
-    if (arg->data_type == SEMANTIC_TYPE_INT ||
-        arg->data_type == SEMANTIC_TYPE_FLOAT) {
 
+
+static void _check_types_recursive(symbol_t* func, asd_tree_t* arg, int* index) {    
+    #ifdef DEBUG_ON
+    printf("[ARG CHECK] nó='%s', tipo=%d, filhos=%d, index=%d\n",
+       arg->label ? arg->label : "<sem-label>",
+       arg->data_type, arg->number_of_children, *index);
+    #endif
+    if (!arg) return;
+    if (arg->data_type == SEMANTIC_TYPE_INT || arg->data_type == SEMANTIC_TYPE_FLOAT) {
         if (*index >= func->num_args) {
             yyerror_semantic("Argumentos em excesso na chamada da funcao.", arg->line, ERR_EXCESS_ARGS);
         }
-
-        semantic_type_t expected = func->arg_types[*index];
-        semantic_type_t provided = arg->data_type;
-        if (expected != provided) {
+        if (func->arg_types[*index] != arg->data_type) {
             yyerror_semantic("Argumento de tipo incompativel.", arg->line, ERR_WRONG_TYPE_ARGS);
         }
-
         (*index)++;
+        return;  
     }
-
-    // O próximo argumento está sempre no primeiro filho, se houver
-    if (arg->number_of_children == 1) {
-        _check_types_recursive(func, arg->children[0], index);
+    for (int i = 0; i < arg->number_of_children; i++) {
+        _check_types_recursive(func, arg->children[i], index);
     }
 }
 
+
 void check_argument_types(symbol_t* func_symbol, asd_tree_t* arg_node) {
-    
     #ifdef DEBUG_ON
     printf("[check_argument_types] Função '%s' com %d args esperados.\n",
        func_symbol->key, func_symbol->num_args);
     #endif
-
     if (func_symbol->num_args == 0 && arg_node == NULL)
         return;
 
@@ -305,11 +380,4 @@ void check_argument_types(symbol_t* func_symbol, asd_tree_t* arg_node) {
     }
 }
 
-void print_arg_tree(asd_tree_t* node, int depth) {
-    if (!node) return;
-    for (int i = 0; i < depth; i++) printf("  ");
-    printf("arg: %s (%d filhos)\n", node->label, node->number_of_children);
-    for (int i = 0; i < node->number_of_children; i++) {
-        print_arg_tree(node->children[i], depth + 1);
-    }
-}
+

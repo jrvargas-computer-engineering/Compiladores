@@ -43,7 +43,7 @@ void scope_stack_init(void) {
 
 void scope_stack_push(table_t* table) {
     if (stack_top >= STACK_MAX_SIZE - 1) {
-        fprintf(stderr, "Erro: Estouro da pilha de escopos (limite: %d)\n", STACK_MAX_SIZE);
+        fprintf(stderr, "[ERROR] Estouro da pilha de escopos (limite: %d)\n", STACK_MAX_SIZE);
         exit(EXIT_FAILURE);
     }
     stack_top++;
@@ -177,7 +177,7 @@ symbol_t* symbol_create_func(lexical_value_t *token_data, semantic_type_t return
     }
    
     #ifdef DEBUG_ON
-    printf("[symbol_create_func] Criando função '%s' com %d parâmetros:\n",
+    printf("[DEBUG][symbol_create_func] Criando função '%s' com %d parâmetros:\n", 
            symbol->key, symbol->num_args);
     for (int i = 0; i < symbol->num_args; i++) {
         printf("  tipo arg[%d] = %d\n", i, symbol->arg_types[i]);
@@ -189,7 +189,7 @@ symbol_t* symbol_create_func(lexical_value_t *token_data, semantic_type_t return
 symbol_t* symbol_create_param(const char* key, semantic_type_t type, int line) {
     symbol_t* symbol = (symbol_t*) malloc(sizeof(symbol_t));
     if (symbol == NULL) {
-        fprintf(stderr, "Erro: Falha ao alocar memoria para simbolo de parametro\n");
+        fprintf(stderr, "[ERROR] Falha ao alocar memoria para simbolo de parametro\n"); 
         exit(EXIT_FAILURE); 
     }
     symbol->key = strdup(key);
@@ -225,9 +225,10 @@ static int is_operator_label(const char* label) {
     }
     return 0;
 }
+
 int count_params(asd_tree_t* param_node) {
     #ifdef DEBUG_ON
-    printf("\n[DEBUG] Iniciando contagem de argumentos...\n");
+    printf("\n[DEBUG] Iniciando contagem de argumentos...\n"); 
     print_arg_tree(param_node, 0);
     #endif
 
@@ -290,19 +291,19 @@ static void _extract_recursive(
     type_array[*index] = type;
 
     if (table_find(table, name) != NULL) {
-        yyerror_semantic("Parametro com nome duplicado.", 0, ERR_DECLARED);
+        yyerror_semantic("Uso duplicado. Parametro com nome duplicado.", 0, ERR_DECLARED); 
     }
     symbol_t* param_sym = symbol_create_param(name, type, node->line);
     table_insert(table, param_sym);
 
 
     #ifdef DEBUG_ON
-    printf("[_extract_recursive] Param %s (type=%d) -> index=%d\n",
+    printf("[DEBUG][_extract_recursive] Param %s (type=%d) -> index=%d\n",
            name ? name : "<anon>", type, *index);
     #endif
     (*index)++;
     #ifdef DEBUG_ON
-    printf("[_extract_recursive] Novo index=%d (filhos=%d)\n",
+    printf("[DEBUG][_extract_recursive] Novo index=%d (filhos=%d)\n", 
            *index, node->number_of_children);
     #endif
 
@@ -328,9 +329,9 @@ semantic_type_t* extract_and_store_params(
     int index = 0;
     _extract_recursive(table, param_node, arg_types, &index);
     #ifdef DEBUG_ON
-    printf("[extract_and_store_params] num_args=%d\n", num_args);
+    printf("[DEBUG][extract_and_store_params] num_args=%d\n", num_args); 
     for (int i = 0; i < num_args; i++) {
-        printf("[extract_and_store_params] arg_types[%d] = %d\n", i, arg_types[i]);
+        printf("[DEBUG][extract_and_store_params] arg_types[%d] = %d\n", i, arg_types[i]); 
     }
     #endif
     return arg_types; 
@@ -340,17 +341,17 @@ semantic_type_t* extract_and_store_params(
 
 static void _check_types_recursive(symbol_t* func, asd_tree_t* arg, int* index) {    
     #ifdef DEBUG_ON
-    printf("[ARG CHECK] nó='%s', tipo=%d, filhos=%d, index=%d\n",
+    printf("[ARG CHECK] nó='%s', tipo=%d, filhos=%d, index=%d\n", 
        arg->label ? arg->label : "<sem-label>",
        arg->data_type, arg->number_of_children, *index);
     #endif
     if (!arg) return;
     if (arg->data_type == SEMANTIC_TYPE_INT || arg->data_type == SEMANTIC_TYPE_FLOAT) {
         if (*index >= func->num_args) {
-            yyerror_semantic("Argumentos em excesso na chamada da funcao.", arg->line, ERR_EXCESS_ARGS);
+            yyerror_semantic("Argumentos em excesso na chamada da funcao.", arg->line, ERR_EXCESS_ARGS); 
         }
         if (func->arg_types[*index] != arg->data_type) {
-            yyerror_semantic("Argumento de tipo incompativel.", arg->line, ERR_WRONG_TYPE_ARGS);
+            yyerror_semantic("Tipo incorreto. Argumento de tipo incompativel.", arg->line, ERR_WRONG_TYPE_ARGS); 
         }
         (*index)++;
         return;  
@@ -363,8 +364,8 @@ static void _check_types_recursive(symbol_t* func, asd_tree_t* arg, int* index) 
 
 void check_argument_types(symbol_t* func_symbol, asd_tree_t* arg_node) {
     #ifdef DEBUG_ON
-    printf("[check_argument_types] Função '%s' com %d args esperados.\n",
-       func_symbol->key, func_symbol->num_args);
+    printf("[DEBUG][check_argument_types] Funcao '%s' com %d args esperados.\n", 
+       func_symbol->key, func_symbol->num_args); 
     #endif
     if (func_symbol->num_args == 0 && arg_node == NULL)
         return;

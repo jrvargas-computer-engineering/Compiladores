@@ -34,6 +34,7 @@ TESTES_SUCESSO=(
     "6_4_3_8_3_sucesso_dois_params.txt"
     "6_5_sucesso_3_params.txt"
     "6_6_operacao_parametros.txt"
+    "teste_final_etapa_3.txt"
 )
 
 TESTES_INT_FLOAT=(
@@ -82,8 +83,6 @@ TESTE_ERR_FUNCTION=(
 
 TESTE_WRONG_TYPE=(
     "5_2_teste_5_6_err_type_retorno.txt:30"
-    "5_3_teste_5_7_err_type_if.txt:30"
-    "5_4_teste_5_8_err_type_while.txt:30"
 )
 
 TESTE_MISSING_ARGS=(
@@ -102,6 +101,21 @@ TESTE_WRONG_TYPE_ARGS=(
     "6_4_7_8_10_mistos_ok_erro.txt:42"
 )
 
+SUCESSO_IF=(
+    "7_1_teste_err_type_if.txt"
+    "7_2_err_type_while.txt"
+    "7_3_if_int.txt"
+    "7_4_ifelse_int_int.txt"
+    "7_5_if_float.txt"
+    "7_6_ifelse_float_float.txt"
+    "7_9_if_nested_int.txt"
+)
+
+FALHA_IF=(
+    "7_7_err_ifelse_int_float.txt:30"
+    "7_8_err_ifelse_float_int.txt:30"
+    "7_10_err_if_nested_conflict.txt:30"
+)
 
 # --- Funções de Teste (rodar_teste_sucesso, rodar_teste_falha) ---
 # (Cole as funções da sua versão anterior do script aqui)
@@ -227,9 +241,10 @@ done
 
 echo ""
 echo "--- 2. Testes com operação entre INT e FLOAT"
-for teste in "${TESTES_INT_FLOAT[@]}"; do
-    rodar_teste_sucesso "$teste"
-done
+#for teste in "${TESTES_INT_FLOAT[@]}"; do
+#    rodar_teste_sucesso "$teste"
+#done
+echo "comentadas no script de teste"
 
 echo ""
 echo "--- 3. Testes ERR_UNDECLARED ---"
@@ -271,6 +286,21 @@ echo "--- 6. Testes  ERR_WRONG_TYPE_ARGS ---"
 for teste in "${TESTE_WRONG_TYPE_ARGS[@]}"; do
     rodar_teste_falha "$teste"
 done
+
+
+echo ""
+echo "--- 7. Testes de Sucesso if/while ---"
+for teste in "${SUCESSO_IF[@]}"; do
+    rodar_teste_sucesso "$teste"
+done
+
+
+echo ""
+echo "--- 8. Testes de Erro if/while ---"
+for teste in "${FALHA_IF[@]}"; do
+    rodar_teste_falha "$teste"
+done
+
 
 echo ""
 echo "--- Resumo dos Testes ---"

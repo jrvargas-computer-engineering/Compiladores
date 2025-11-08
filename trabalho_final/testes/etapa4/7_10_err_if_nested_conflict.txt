@@ -1,0 +1,21 @@
+main -> inteiro := 
+[
+    var i := inteiro
+    var f := decimal
+    se (i < 5)
+    [
+        se (i == 1)
+        [
+            f := 2.0
+        ]
+        senao
+        [
+            i := 3
+        ]
+    ]
+    senao
+    [
+        i := 4
+    ]
+]
+;

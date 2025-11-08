@@ -1,0 +1,13 @@
+main -> decimal := 
+[
+    var f := decimal
+    se (f == 0.0)
+    [
+        f := 2.0
+    ]
+    senao
+    [
+        f := 4.0
+    ]
+]
+;

@@ -166,7 +166,7 @@ cabecalho_funcao:
         table_t* escopo_pai = scope_stack_peek();
         
         if (table_find(escopo_pai, $1->value) != NULL) {
-            yyerror_semantic("Uso duplicado. Funcao ja declarada.", $1->line, ERR_DECLARED);
+            yyerror_semantic("Funcao ja declarada.", $1->line, ERR_DECLARED);
         }
         symbol_t* func_symbol = symbol_create_func($1, $3, num_args, arg_types); 
         table_insert(escopo_pai, func_symbol); 
@@ -233,7 +233,7 @@ declaracao_variavel_s_ini: // Sem inicialização
 
         //verifica se simbolo esta declarado neste escopo 
         if (table_find(escopo_atual, $2->value) != NULL) {
-            yyerror_semantic("Uso duplicado. Variavel ja declarada.", $2->line, ERR_DECLARED);
+            yyerror_semantic("Identificador ja declarado.", $2->line, ERR_DECLARED);
         }
         symbol_t* novo_simbolo = symbol_create_var($2, $4);
         table_insert(escopo_atual, novo_simbolo);     
@@ -252,7 +252,6 @@ tipo:
 // para o parser
 
 
-//POSSIVEL ERRO AQUI
 // Regra "geral" que aponta para as regras específicas de tipo
 declaracao_variavel_c_ini_opcional:
     TK_VAR TK_ID TK_ATRIB TK_INTEIRO inicializacao_inteiro_opcional{
@@ -260,7 +259,7 @@ declaracao_variavel_c_ini_opcional:
         table_t* escopo_atual = scope_stack_peek();
         //verifica se simbolo esta declarado neste escopo 
         if (table_find(escopo_atual, $2->value) != NULL) {
-            yyerror_semantic("Uso duplicado. Variavel ja declarada.", $2->line, ERR_DECLARED);
+            yyerror_semantic("Identificador ja declarado.", $2->line, ERR_DECLARED);
         }
         
         symbol_t* novo_simbolo = symbol_create_var($2, SEMANTIC_TYPE_INT);
@@ -271,7 +270,7 @@ declaracao_variavel_c_ini_opcional:
         }
         else{
             if ($5->data_type != SEMANTIC_TYPE_INT) {
-                yyerror_semantic("Tipo incorreto. Inicializacao incompativel, esperava 'inteiro'.", $2->line, ERR_WRONG_TYPE);
+                yyerror_semantic("Inicializacao incompativel. Esperava 'inteiro'.", $2->line, ERR_WRONG_TYPE);
             }
             $$ = asd_new("com"); 
             asd_tree_t* tk_id_no = asd_new($2->value);
@@ -287,7 +286,7 @@ declaracao_variavel_c_ini_opcional:
         
         //verifica se simbolo esta declarado neste escopo 
         if (table_find(escopo_atual, $2->value) != NULL) {
-            yyerror_semantic("Uso duplicado. Variavel ja declarada.", $2->line, ERR_DECLARED);
+            yyerror_semantic("Identificador ja declarado.", $2->line, ERR_DECLARED);
         }
        
         symbol_t* novo_simbolo = symbol_create_var($2, SEMANTIC_TYPE_FLOAT);
@@ -298,15 +297,13 @@ declaracao_variavel_c_ini_opcional:
         }
         else{
             if ($5->data_type != SEMANTIC_TYPE_FLOAT) {
-                yyerror_semantic("Tipo incorreto. Inicializacao incompativel, esperava 'decimal'.", $2->line, ERR_WRONG_TYPE);
+                yyerror_semantic("Inicializacao incompativel. Esperava 'decimal'.", $2->line, ERR_WRONG_TYPE);
             }
             $$ = asd_new("com"); 
             asd_tree_t* tk_id_no = asd_new($2->value);
             asd_add_child($$, tk_id_no);
             asd_add_child($$, $5);
         }
-        //free($2->value);
-        //free($2);
     }
 ;
 
@@ -374,6 +371,8 @@ bloco_comandos:
     } // apenas propaga lista de comandos
 ;
 
+
+
 escopo_bloco_ini:
     %empty {
         table_t* tabela_bloco = table_create(); 
@@ -416,17 +415,14 @@ comando_atribuicao:
         symbol_t* simbolo = stack_find_global($1->value);
         
         if (simbolo == NULL) {
-            yyerror_semantic("Nao declarado. Variavel nao declarada.", $1->line, ERR_UNDECLARED);
+            yyerror_semantic("Identificador nao declarado.", $1->line, ERR_UNDECLARED);
         }
         if (simbolo->nature == SYMBOL_FUNCAO) {
-            yyerror_semantic("Uso incorreto. Funcao usada como variavel em atribuicao.", $1->line, ERR_FUNCTION);
+            yyerror_semantic("Funcao usada como variavel em atribuicao.", $1->line, ERR_FUNCTION);
         }
 
-        // 4. (Passo 6) Verifique os tipos
-        // (Será feito no Passo 6, mas a informação está aqui)
-        // if (simbolo->data_type != $3->data_type) { ... }
         if (simbolo->data_type != $3->data_type) {
-            yyerror_semantic("Tipo incorreto. Atribuicao de tipo incompativel.", $1->line, ERR_WRONG_TYPE);
+            yyerror_semantic("Atribuicao de tipo incompativel.", $1->line, ERR_WRONG_TYPE);
         }
 
         $$ = asd_new(":="); 
@@ -445,21 +441,21 @@ chamada_funcao:
         symbol_t* simbolo = stack_find_global($1->value);   
 
         if (simbolo == NULL) {
-            yyerror_semantic("Nao declarado. Funcao nao declarada.", $1->line, ERR_UNDECLARED);
+            yyerror_semantic("Funcao nao declarada.", $1->line, ERR_UNDECLARED);
         }     
 
         if (simbolo->nature == SYMBOL_ID) {
-            yyerror_semantic("Uso incorreto. Variavel usada como funcao.", $1->line, ERR_VARIABLE);
+            yyerror_semantic("Variavel usada como funcao.", $1->line, ERR_VARIABLE);
         }
 
 
         //conta argumentos e compara
         int provided_arg_count = count_params($3);
         if (provided_arg_count < simbolo->num_args) {
-            yyerror_semantic("Argumentos insuficientes. Faltam argumentos na chamada da funcao.", $1->line, ERR_MISSING_ARGS);
+            yyerror_semantic("Faltam argumentos na chamada da funcao.", $1->line, ERR_MISSING_ARGS);
         }    
         if (provided_arg_count > simbolo->num_args) {
-            yyerror_semantic("Argumentos excessivos. Argumentos em excesso na chamada da funcao.", $1->line, ERR_EXCESS_ARGS);
+            yyerror_semantic("Argumentos em excesso na chamada da funcao.", $1->line, ERR_EXCESS_ARGS);
         }
         //compara os tipos
         if (simbolo->num_args > 0 && provided_arg_count == simbolo->num_args) {
@@ -503,7 +499,7 @@ lista_argumentos:
 comando_retorno:
     TK_RETORNA expressao TK_ATRIB tipo{
         if ($2->data_type != $4) {
-            yyerror_semantic("Tipo incorreto. Tipo de retorno incompativel com a declaracao da funcao.", $2->line, ERR_WRONG_TYPE);
+             yyerror_semantic("Tipo de retorno incompativel com a declaracao da funcao.", $2->line, ERR_WRONG_TYPE);
         }
         $$ = new_node_from_unary_op("retorna", $2);  
         $$->data_type = $2->data_type; 
@@ -515,16 +511,31 @@ construcoes_fluxo_controle:
     | comando_enquanto { $$ = $1; }
 ;
 
+
 comando_condicional:
-    TK_SE '(' expressao ')' bloco_comandos senao_opcional{
-        if ($3->data_type != SEMANTIC_TYPE_INT) {
-            yyerror_semantic("Tipo incorreto. Expressao de teste do 'se' deve ser do tipo inteiro.", $3->line, ERR_WRONG_TYPE);
-        }
+    TK_SE '(' expressao ')' bloco_comandos senao_opcional {
         $$ = new_node_from_binary_op("se", $3, $5);
-        if($6 != NULL) asd_add_child($$, $6); 
-        $$->data_type = SEMANTIC_TYPE_INT;
+        if ($6 != NULL) 
+            asd_add_child($$, $6);
+
+        // Verificação de compatibilidade entre blocos (se existir else)
+        if ($6 != NULL && $5 != NULL) {
+            semantic_type_t then_type = last_type($5);
+            semantic_type_t else_type = last_type($6);
+            if (then_type != SEMANTIC_TYPE_UNDEFINED && 
+                else_type != SEMANTIC_TYPE_UNDEFINED &&
+                then_type != else_type) {
+
+                yyerror_semantic("Tipos incompatíveis entre os blocos 'if' e 'else'.",
+                                 $3->line, ERR_WRONG_TYPE);
+            }
+        }
+
+        // O tipo do comando if é o tipo da expressão de teste
+        $$->data_type = $3->data_type;
     }
 ;
+
 
 senao_opcional:
     %empty {$$ = NULL;}
@@ -533,11 +544,11 @@ senao_opcional:
 
 comando_enquanto:
     TK_ENQUANTO '(' expressao ')' bloco_comandos {
-        if ($3->data_type != SEMANTIC_TYPE_INT) {
-            yyerror_semantic("Tipo incorreto. Expressao de teste do 'enquanto' deve ser do tipo inteiro.", $3->line, ERR_WRONG_TYPE);
-        }
+        //if ($3->data_type != SEMANTIC_TYPE_INT) {
+        //    yyerror_semantic("Expressao de teste do 'enquanto' deve ser do tipo inteiro.", $3->line, ERR_WRONG_TYPE);
+        //}
         $$ = new_node_from_binary_op("enquanto", $3, $5);
-        $$->data_type = SEMANTIC_TYPE_INT; 
+        $$->data_type = $3->data_type; 
     }
 ;
 
@@ -618,7 +629,7 @@ expr_nivel2:
     }
     | expr_nivel2 '%' expr_nivel1 {
         if ($1->data_type != SEMANTIC_TYPE_INT || $3->data_type != SEMANTIC_TYPE_INT) {
-            yyerror_semantic("Tipo incorreto. Operador de resto (%) aplicado a float.", $1->line, ERR_WRONG_TYPE);
+            yyerror_semantic("Operador de resto (%) aplicado a float.", $1->line, ERR_WRONG_TYPE);
         }
         $$ = new_node_from_binary_op_arit("%", $1, $3);
     }
@@ -639,7 +650,7 @@ expr_nivel1:
     }
     | '!' expr_nivel1 {
     if ($2->data_type != SEMANTIC_TYPE_INT) {
-            yyerror_semantic("Tipo incorreto. Negacao logica (!) aplicada a um float.", $2->line, ERR_WRONG_TYPE);
+             yyerror_semantic("Negacao logica (!) aplicada a um float.", $2->line, ERR_WRONG_TYPE);
         }
         $$ = new_node_from_unary_op("!", $2);
         $$->data_type = SEMANTIC_TYPE_INT; 
@@ -653,10 +664,10 @@ fator:
     TK_ID {
         symbol_t* simbolo = stack_find_global($1->value);
         if (simbolo == NULL) {
-            yyerror_semantic("Nao declarado. Identificador nao declarado.", $1->line, ERR_UNDECLARED);
+            yyerror_semantic("Identificador nao declarado.", $1->line, ERR_UNDECLARED);
         }
         if (simbolo->nature == SYMBOL_FUNCAO) {
-            yyerror_semantic("Uso incorreto. Funcao usada como variavel.", $1->line, ERR_FUNCTION);
+            yyerror_semantic("Funcao usada como variavel.", $1->line, ERR_FUNCTION);
         }
         $$ = new_node_from_lexval($1); 
         $$->data_type = simbolo->data_type;
@@ -672,10 +683,10 @@ extern int yylineno;
  
 // Função chamada pelo yyparse ao encontrar um erro sintático.
 void yyerror (char const *mensagem) {
-    printf("[Linha %d]: [Erro Sintatico] %s\n ", yylineno, mensagem);
+    printf("Linha %d: %s\n ", yylineno, mensagem);
 }
 
 void yyerror_semantic(const char *mensagem, int line, int error_code) {
-    printf("[Linha %d]: [Erro Semantico] %s\n", line, mensagem);     
+    printf("Erro semantico (Linha %d): %s\n", line, mensagem);     
     exit(error_code); 
 }

@@ -3,6 +3,17 @@
     =================== Funcoes =========================
     =====================================================
 */ 
+
+//add e4
+semantic_type_t last_type(asd_tree_t* bloco) {
+    if (!bloco) return SEMANTIC_TYPE_UNDEFINED;
+    asd_tree_t* current = bloco;
+    while (current->number_of_children > 0) {
+        current = current->children[current->number_of_children - 1];
+    }
+    return current->data_type;
+}
+
 //new node from token/lex value
 //lex values are e.g $1, $2, NULL
 asd_tree_t* new_node_from_lexval(lexical_value_t *lexval) {

@@ -1,0 +1,16 @@
+dobro -> inteiro com x := inteiro :=
+[
+    retorna x * 2 := inteiro
+],
+
+triplo -> inteiro com y := inteiro :=
+[
+    retorna y * 3 := inteiro
+],
+
+principal -> inteiro :=
+[
+    var r := inteiro
+    r := triplo(dobro(5))
+    retorna 0 := inteiro
+];

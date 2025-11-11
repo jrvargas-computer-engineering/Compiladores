@@ -1,6 +1,16 @@
+
+
 # Compiladores
 Repositório para a disciplina de Compiladores, ofertada no 7° semestre do curso de Engenharia de Computação (UFRGS).
 
+# Notas por etapa
+
+|  Etapa        | Nota Objetiva | Nota Subjetiva| Nota Final    |
+| ------------- | ------------- | ------------- | ------------- |
+| Etapa 1       | 10            | 9.5           | 9.75          |
+| Etapa 2       | 10            | 8.53          | 9.27          |
+| Etapa 3       | 9.17          | 6.09          | 8.04          |
+| Etapa 4       | 9.04          | 7.62          | 8.33          |
 
 
 # Etapa 1
@@ -99,5 +109,6 @@ dot saida.dot -Tpng -o arvore.png
 ```
 
 # Etapa 4
+
 
 ## Log de Mudanças

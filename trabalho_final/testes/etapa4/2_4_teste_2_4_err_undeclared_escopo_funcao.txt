@@ -1,0 +1,8 @@
+f1 -> inteiro := [
+    var x := inteiro
+],
+
+f2 -> inteiro := [
+    x := 10 
+]
+;

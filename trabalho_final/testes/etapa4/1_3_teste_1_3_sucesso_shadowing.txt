@@ -1,0 +1,11 @@
+var x := inteiro,
+f -> inteiro := [
+    var x := decimal
+    x := 10.5
+    retorna 5 := inteiro
+],
+main -> inteiro :=
+[
+    x := 5
+]
+;

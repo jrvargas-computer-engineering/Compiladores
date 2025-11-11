@@ -1,0 +1,11 @@
+multiplica_decimal -> decimal com a := decimal, b := decimal :=
+[
+    retorna a * b := decimal
+],
+
+principal -> inteiro :=
+[
+    var d := decimal
+    d := multiplica_decimal(3, 2.5)
+    retorna 0 := inteiro
+];

@@ -1,0 +1,9 @@
+soma -> inteiro com a := inteiro :=
+[
+    retorna a := inteiro
+],
+main -> inteiro :=
+[
+    soma(5, 10) 
+]
+;

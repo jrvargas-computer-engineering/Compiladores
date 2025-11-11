@@ -1,0 +1,11 @@
+funcao_constante -> decimal :=
+[
+    retorna 3.14 := decimal
+],
+
+principal -> inteiro :=
+[
+    var x := decimal
+    x := funcao_constante()
+    retorna 0 := inteiro
+];

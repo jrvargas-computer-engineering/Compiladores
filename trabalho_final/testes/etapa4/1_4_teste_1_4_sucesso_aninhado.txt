@@ -1,0 +1,12 @@
+var x := inteiro,
+main -> inteiro :=
+[
+    [
+        var y := inteiro
+        [
+            var z := inteiro
+            x := y + z 
+        ]
+    ]
+]
+;

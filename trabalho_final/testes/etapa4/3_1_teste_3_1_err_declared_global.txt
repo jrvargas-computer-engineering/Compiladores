@@ -1,0 +1,4 @@
+var x := inteiro,
+var y := decimal,
+var x := inteiro 
+;

@@ -1,0 +1,13 @@
+soma -> inteiro com a := inteiro, b := inteiro, c := inteiro :=
+[
+    retorna a + b := inteiro
+],
+
+principal -> inteiro :=
+[
+    var z := inteiro
+    var y := inteiro
+    z := soma(2, 3, (4 + y))
+    retorna 0 := inteiro
+];
+

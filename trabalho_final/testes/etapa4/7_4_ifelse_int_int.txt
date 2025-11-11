@@ -1,0 +1,13 @@
+main -> inteiro := 
+[
+    var i := inteiro
+    se (i > 5)
+    [
+        i := 1
+    ]
+    senao
+    [
+        i := 0
+    ]
+]
+;

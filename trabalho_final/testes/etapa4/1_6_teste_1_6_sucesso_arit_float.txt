@@ -1,0 +1,9 @@
+main -> inteiro :=
+[
+    var f1 := decimal
+    var f2 := decimal
+    f1 := 10.5
+    f2 := 2.0
+    f1 := f1 * (f2 + f1 / f2 - f2)
+]
+;

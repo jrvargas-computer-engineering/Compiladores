@@ -1,0 +1,42 @@
+var j := inteiro,
+var k := inteiro,
+var ex_id := inteiro,
+var ex_id2 := inteiro,
+var teste_args := inteiro,
+var c := inteiro,
+var teste_atrib := inteiro,
+var a := inteiro,
+var b := inteiro,
+
+ex_chamada_func -> inteiro := 
+[
+    retorna 1 := inteiro
+],
+
+chamada_funcao -> inteiro com arg1 := inteiro, arg2 := decimal := 
+[
+    retorna 0 := inteiro
+],
+
+// --- Código Original (Corrigido) ---
+
+ex_func1 -> inteiro com ex_parametro_sem_com_e_virgula := inteiro := 
+[ 
+    se (j > k) [
+        var decl_variavel_com_inic := inteiro com 10
+        var decl_variavel := decimal
+    ]
+    
+    enquanto ((2+2)*!ex_id | (ex_id2 & ex_chamada_func()) % 3) [
+        
+        chamada_funcao(teste_args, 12.43) 
+        
+        retorna c := inteiro
+        teste_atrib := a + b
+    ]
+], 
+
+ex_func2 -> decimal com param := inteiro, param2 := decimal := 
+[
+]
+; 

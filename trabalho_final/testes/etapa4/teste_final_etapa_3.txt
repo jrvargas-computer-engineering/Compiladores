@@ -1,0 +1,68 @@
+// Teste completo explorando todas as funcionalidades da linguagem.
+// Agora cobrindo inclusive operadores compostos, OU lógico, 
+// inicialização com decimal, função retornando decimal e chamada sem argumentos.
+
+// Declaração de variável global (sem inicialização, como manda a regra)
+var g_variavel_decimal := decimal,
+
+// Função sem parâmetros (retorno decimal, para testar)
+funcao_constante -> decimal :=
+[
+    retorna 3.14 := decimal
+],
+
+// Definição de uma função com múltiplos parâmetros (decimais).
+soma_e_multiplica -> decimal com a := decimal, b := decimal :=
+[
+    // Declaração de variável local sem inicialização.
+    var resultado := decimal
+
+    // Comando de atribuição com expressão aritmética.
+    resultado := a + b * 2.0
+
+    // Comando de retorno com expressão.
+    retorna resultado := decimal
+],
+
+// Definição da função principal, sem parâmetros.
+principal -> decimal :=
+[
+    // Declaração de variáveis locais.
+    var contador := decimal
+    var resultado_decimal := decimal com 1.0
+    var inicializado_decimal := decimal com 42.0
+
+    // Comando de atribuição com literal decimal.
+    contador := -contador + (+inicializado_decimal)
+    contador := 0.0
+    g_variavel_decimal := 100.0
+
+    // Comando de controle de fluxo: ENQUANTO.
+    enquanto (contador < 10.0 & !(g_variavel_decimal == 0.0))
+    [
+        // Comando de controle de fluxo: SE / SENAO.
+        // Aqui usamos todos os operadores compostos e o OU (|).
+        se ((contador <= 5.0) | (g_variavel_decimal >= 50.0))
+        [
+            resultado_decimal := (soma_e_multiplica(contador, contador + 1.0) * 3.0) / 2.0
+        ]
+        senao
+        [
+            // Teste de operadores compostos restantes.
+            se (contador != 7.0)
+            [
+                resultado_decimal := funcao_constante()  // chamada sem argumentos
+            ]
+            senao
+            [
+                resultado_decimal := 0.0
+            ]
+        ]
+
+        // Atribuição com expressão para incrementar o contador.
+        contador := contador + 1.0
+    ]
+
+    // Comando de retorno com valor literal.
+    retorna 0.0 := decimal
+];

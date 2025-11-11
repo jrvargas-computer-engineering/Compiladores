@@ -1,0 +1,9 @@
+main -> inteiro := 
+[
+    var i := inteiro
+    se (i < 10)
+    [
+        i := 1
+    ]
+]
+;

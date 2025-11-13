@@ -11,7 +11,7 @@ TARGET = etapa4
 OBJ = main.o parser.tab.o lex.yy.o asd.o tabela.o parser_helpers.o 
 
 #flags
-CFLAGS = -g -Wall -Werror #-fsanitize=address
+CFLAGS = -g -Wall -Werror -fsanitize=address
 all: $(TARGET)
 
 # linking

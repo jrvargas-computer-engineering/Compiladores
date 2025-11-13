@@ -10,8 +10,9 @@ int yylex(void);
 void yyerror (char const *mensagem);
 void yyerror_semantic(const char *mensagem, int line, int error_code);
 extern asd_tree_t *arvore;
-%}
+symbol_t* funcao_global = NULL;
 
+%}
 
 /*  =====================================================
     =============== Declaracoes do Bison ================
@@ -65,6 +66,9 @@ Para
 %type <arvore> expressao expr_nivel7 expr_nivel6 expr_nivel5 expr_nivel4 expr_nivel3 expr_nivel2 expr_nivel1 fator
 %type <arvore> escopo_ini escopo_fim escopo_bloco_ini escopo_bloco_fim
 %%
+
+
+
 
 
 /*  =====================================================
@@ -136,6 +140,8 @@ definicao_funcao:
         if($2 != NULL)
             asd_add_child($$, $2); 
 
+        funcao_global = NULL; 
+
         //definicao funcao eh onde escopo eh destruido
         table_t* tabela_funcao = scope_stack_pop();
         table_free(tabela_funcao);
@@ -148,12 +154,6 @@ cabecalho_funcao:
 
         $$ = asd_new($1->value); 
         $$->data_type = $3; 
-
-        //$4 NAO DEVE SER adicionada na arvore
-        //pensar sobre depois
-        //if ($4 != NULL) {
-        //    asd_add_child($$, $4);
-        //}    
 
         /* CRIAR ESCOPO DA FUNCAO */
         table_t* tabela_funcao = table_create();
@@ -171,12 +171,14 @@ cabecalho_funcao:
         symbol_t* func_symbol = symbol_create_func($1, $3, num_args, arg_types); 
         table_insert(escopo_pai, func_symbol); 
         
+        funcao_global = func_symbol;
 
         scope_stack_push(tabela_funcao);
         free(arg_types);
-        //asd_free($4);
-        //free($1->value);
-        //free($1);    
+
+        if ($4 != NULL) {
+            asd_free($4); 
+        }
 
     }
 ;
@@ -193,12 +195,14 @@ lista_opicional_parametros:
         $$ = $1;
     }
 ; 
+/* Em parser.y */
 
 lista_parametros:
-    parametro {
-        $$ = $1; 
+    parametro { 
+        $$ = asd_new("param_list"); 
+        asd_add_child($$, $1); 
     }
-    | parametro ',' lista_parametros  {
+    | lista_parametros ',' parametro  { 
         $$ = $1;
         asd_add_child($$, $3); 
     }
@@ -218,11 +222,22 @@ parametro:
 ;
 
 // O corpo eh um bloco de comandos 
+
+corpo_funcao:
+    '[' lista_comando_simples_opcionais ']'{
+        $$ = $2; 
+    }
+;
+
+
+/*nessa forma antiga, era criado um novo escopo*/
+/*
 corpo_funcao:
     bloco_comandos {
         $$ = $1; 
     }
 ; 
+*/
 
 // ==========  Declaracao de variaveis  ==========
 declaracao_variavel_s_ini: // Sem inicialização
@@ -230,6 +245,8 @@ declaracao_variavel_s_ini: // Sem inicialização
        
         //pegar o escopo atual
         table_t* escopo_atual = scope_stack_peek();
+
+        
 
         //verifica se simbolo esta declarado neste escopo 
         if (table_find(escopo_atual, $2->value) != NULL) {
@@ -373,6 +390,7 @@ bloco_comandos:
 
 
 
+
 escopo_bloco_ini:
     %empty {
         table_t* tabela_bloco = table_create(); 
@@ -483,16 +501,19 @@ lista_argumentos_opcional:
 
 //cada argumento eh separado do outro por vírgula. 
 //Um argumento eh uma expressão.
-lista_argumentos:
-    expressao{
-        $$ = $1; 
-    }
-    | expressao ',' lista_argumentos  {
-        $$ = $1;
-        asd_add_child($$, $3);
-    }
-; 
 
+/* Em parser.y */
+
+lista_argumentos:
+    expressao { 
+        $$ = asd_new("arg_list"); 
+        asd_add_child($$, $1); 
+    }
+    | lista_argumentos ',' expressao  { 
+        $$ = $1; 
+        asd_add_child($$, $3); 
+    }
+;
 
 //e terminado ou pelo
 //token TK_DECIMAL ou pelo token TK_INTEIRO.
@@ -500,6 +521,10 @@ comando_retorno:
     TK_RETORNA expressao TK_ATRIB tipo{
         if ($2->data_type != $4) {
              yyerror_semantic("Tipo de retorno incompativel com a declaracao da funcao.", $2->line, ERR_WRONG_TYPE);
+        }
+        //adicionado  e4
+        if (funcao_global != NULL && funcao_global->data_type != $4){
+            yyerror_semantic("Tipo de retorno incompativel com a declaracao da funcao.", $2->line, ERR_WRONG_TYPE);
         }
         $$ = new_node_from_unary_op("retorna", $2);  
         $$->data_type = $2->data_type; 
@@ -522,9 +547,7 @@ comando_condicional:
         if ($6 != NULL && $5 != NULL) {
             semantic_type_t then_type = last_type($5);
             semantic_type_t else_type = last_type($6);
-            if (then_type != SEMANTIC_TYPE_UNDEFINED && 
-                else_type != SEMANTIC_TYPE_UNDEFINED &&
-                then_type != else_type) {
+            if (then_type != else_type) {
 
                 yyerror_semantic("Tipos incompatíveis entre os blocos 'if' e 'else'.",
                                  $3->line, ERR_WRONG_TYPE);

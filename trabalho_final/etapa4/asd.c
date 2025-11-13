@@ -17,7 +17,12 @@ asd_tree_t *asd_new(const char *label)
     ret->number_of_children = 0;
     ret->children = NULL;
     ret->value = 0;
+
+    /*
+    inicializacao retirada em razao do comentario
     ret->data_type = SEMANTIC_TYPE_UNDEFINED; 
+    *O tipo de dado pode ser int ou float, não tem como ser SEMANTIC_TYPE_UNDEFINED*
+    */
     
     #ifdef DEBUG_ON
     printf("[DEBUG] Criando nó: %s (%p)\n", label, (void*)ret);

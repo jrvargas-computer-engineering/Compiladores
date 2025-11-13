@@ -6,7 +6,12 @@
 
 //add e4
 semantic_type_t last_type(asd_tree_t* bloco) {
-    if (!bloco) return SEMANTIC_TYPE_UNDEFINED;
+    /*
+    Validacao retirada em resultado ao comentario
+    *O tipo de dado pode ser int ou float, não tem como ser SEMANTIC_TYPE_UNDEFINED*
+    if (!bloco) return NULL;
+    */
+    
     asd_tree_t* current = bloco;
     while (current->number_of_children > 0) {
         current = current->children[current->number_of_children - 1];

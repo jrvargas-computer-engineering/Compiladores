@@ -215,165 +215,64 @@ symbol_t* symbol_create_param(const char* key, semantic_type_t type, int line) {
     registradas na tabela de sımbolos, registradas no
     momento da declaração/definição da função.
     */
-
-static int is_operator_label(const char* label) {
-    if (label == NULL) return 0;
-    const char* ops[] = {"+", "-", "*", "/", "%", ">", "<", ">=", "<=", "==", "!=", "&&", "||"};
-    for (int i = 0; i < (int)(sizeof(ops)/sizeof(ops[0])); i++) {
-        if (strcmp(label, ops[i]) == 0)
-            return 1;
+int count_params(asd_tree_t* list_node) {
+    if (list_node == NULL) {
+        return 0; 
     }
-    return 0;
-}
-
-int count_params(asd_tree_t* param_node) {
-    #ifdef DEBUG_ON
-    printf("\n[DEBUG] Iniciando contagem de argumentos...\n"); 
-    print_arg_tree(param_node, 0);
-    #endif
-
-    if (param_node == NULL){
-        return 0;
-    }
-
-
-    if (param_node->label && strncmp(param_node->label, "call", 4) == 0) {
-        return 1 + count_params(param_node->children[1]);
-    }
-    if (param_node->number_of_children == 1) {
-        return 1 + count_params(param_node->children[0]);
-    }
-    if (param_node->number_of_children > 1) {
-        int count = 0;
-        //GAMBIARRA AQUI, PARA RESOLVER CASOS (NUMERO + NUMERO)
-        if (param_node->label && is_operator_label(param_node->label)){
-            count--; 
-        }
-        for (int i = 0; i < param_node->number_of_children; i++) {
-            asd_tree_t* child = param_node->children[i];
-            if (child == NULL) continue;
-            if (child->label && strncmp(child->label, "call", 4) == 0) {
-                count++;
-                continue;
-            }
-
-            if (child->number_of_children > 0) {
-                count += count_params(child);
-            }
-            else if (child->data_type == SEMANTIC_TYPE_INT || child->data_type == SEMANTIC_TYPE_FLOAT) {
-                count++;
-            }
-        }
-        return count;
-    }
-    if (param_node->number_of_children == 0) {
-        if (param_node->data_type == SEMANTIC_TYPE_INT ||
-            param_node->data_type == SEMANTIC_TYPE_FLOAT) {
-            return 1;
-        }
-    }
-    return 0;
+    return list_node->number_of_children;
 }
 
 
 
-static void _extract_recursive(
-    table_t* table,
-    asd_tree_t* node,
-    semantic_type_t* type_array,
-    int* index
-) {
-    if (node == NULL) {
-        return;
-    }
-    const char* name = node->label;
-    semantic_type_t type = node->data_type;
-    type_array[*index] = type;
 
-    if (table_find(table, name) != NULL) {
-        yyerror_semantic("Uso duplicado. Parametro com nome duplicado.", 0, ERR_DECLARED); 
-    }
-    symbol_t* param_sym = symbol_create_param(name, type, node->line);
-    table_insert(table, param_sym);
-
-
-    #ifdef DEBUG_ON
-    printf("[DEBUG][_extract_recursive] Param %s (type=%d) -> index=%d\n",
-           name ? name : "<anon>", type, *index);
-    #endif
-    (*index)++;
-    #ifdef DEBUG_ON
-    printf("[DEBUG][_extract_recursive] Novo index=%d (filhos=%d)\n", 
-           *index, node->number_of_children);
-    #endif
-
-    for (int i = 0; i < node->number_of_children; i++) {
-        _extract_recursive(table, node->children[i], type_array, index);
-    }
-}
-
-
-
+/* Em tabela.c */
 semantic_type_t* extract_and_store_params(
-    table_t* table,         // O novo escopo (tabela_funcao)
-    asd_tree_t* param_node, // A árvore de parâmetros ($4)
-    int* out_num_args       // Onde salvar a contagem
+    table_t* table,
+    asd_tree_t* param_list_node,
+    int* out_num_args
 ) {
-    int num_args = count_params(param_node);
+    int num_args = count_params(param_list_node);
     *out_num_args = num_args;
     
     if (num_args == 0) {
         return NULL; 
     }
+
     semantic_type_t* arg_types = (semantic_type_t*) malloc(num_args * sizeof(semantic_type_t));    
-    int index = 0;
-    _extract_recursive(table, param_node, arg_types, &index);
-    #ifdef DEBUG_ON
-    printf("[DEBUG][extract_and_store_params] num_args=%d\n", num_args); 
+    
     for (int i = 0; i < num_args; i++) {
-        printf("[DEBUG][extract_and_store_params] arg_types[%d] = %d\n", i, arg_types[i]); 
+        asd_tree_t* node = param_list_node->children[i];
+
+        const char* name = node->label;
+        semantic_type_t type = node->data_type;    
+        
+        arg_types[i] = type;
+        
+        if (table_find(table, name) != NULL) {
+            yyerror_semantic("Parametro com nome duplicado.", node->line, ERR_DECLARED);
+        }
+        
+        symbol_t* param_sym = symbol_create_param(name, type, node->line);
+        table_insert(table, param_sym);
     }
-    #endif
+    
     return arg_types; 
 }
 
 
 
-static void _check_types_recursive(symbol_t* func, asd_tree_t* arg, int* index) {    
-    #ifdef DEBUG_ON
-    printf("[ARG CHECK] nó='%s', tipo=%d, filhos=%d, index=%d\n", 
-       arg->label ? arg->label : "<sem-label>",
-       arg->data_type, arg->number_of_children, *index);
-    #endif
-    if (!arg) return;
-    if (arg->data_type == SEMANTIC_TYPE_INT || arg->data_type == SEMANTIC_TYPE_FLOAT) {
-        if (*index >= func->num_args) {
-            yyerror_semantic("Argumentos em excesso na chamada da funcao.", arg->line, ERR_EXCESS_ARGS); 
-        }
-        if (func->arg_types[*index] != arg->data_type) {
-            yyerror_semantic("Tipo incorreto. Argumento de tipo incompativel.", arg->line, ERR_WRONG_TYPE_ARGS); 
-        }
-        (*index)++;
-        return;  
-    }
-    for (int i = 0; i < arg->number_of_children; i++) {
-        _check_types_recursive(func, arg->children[i], index);
-    }
-}
-
-
-void check_argument_types(symbol_t* func_symbol, asd_tree_t* arg_node) {
-    #ifdef DEBUG_ON
-    printf("[DEBUG][check_argument_types] Funcao '%s' com %d args esperados.\n", 
-       func_symbol->key, func_symbol->num_args); 
-    #endif
-    if (func_symbol->num_args == 0 && arg_node == NULL)
+void check_argument_types(symbol_t* func_symbol, asd_tree_t* arg_list_node) {
+    if (func_symbol->num_args == 0 && arg_list_node == NULL) {
         return;
+    }
 
-    if (arg_node != NULL) {
-        int index = 0;
-        _check_types_recursive(func_symbol, arg_node, &index);
+    for (int i = 0; i < func_symbol->num_args; i++) {        
+        asd_tree_t* arg_node = arg_list_node->children[i];
+        semantic_type_t expected_type = func_symbol->arg_types[i];
+        semantic_type_t provided_type = arg_node->data_type;
+
+        if (expected_type != provided_type) {
+            yyerror_semantic("Argumento de tipo incompativel.", arg_node->line, ERR_WRONG_TYPE_ARGS);
+        }
     }
 }
-
-

@@ -7,7 +7,6 @@
 
 //add e4
 typedef enum {
-    SEMANTIC_TYPE_UNDEFINED,
     SEMANTIC_TYPE_INT,            
     SEMANTIC_TYPE_FLOAT          
 } semantic_type_t;

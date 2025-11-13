@@ -174,6 +174,10 @@ cabecalho_funcao:
 
         scope_stack_push(tabela_funcao);
         free(arg_types);
+
+        if ($4 != NULL) {
+            asd_free($4); 
+        }
         //asd_free($4);
         //free($1->value);
         //free($1);    
@@ -522,9 +526,7 @@ comando_condicional:
         if ($6 != NULL && $5 != NULL) {
             semantic_type_t then_type = last_type($5);
             semantic_type_t else_type = last_type($6);
-            if (then_type != SEMANTIC_TYPE_UNDEFINED && 
-                else_type != SEMANTIC_TYPE_UNDEFINED &&
-                then_type != else_type) {
+            if (then_type != else_type) {
 
                 yyerror_semantic("Tipos incompatíveis entre os blocos 'if' e 'else'.",
                                  $3->line, ERR_WRONG_TYPE);

@@ -321,10 +321,11 @@ semantic_type_t* extract_and_store_params(
 ) {
     int num_args = count_params(param_node);
     *out_num_args = num_args;
-    
     if (num_args == 0) {
         return NULL; 
     }
+
+    //preenche o campo dos tipos de argumentos dos parametros 
     semantic_type_t* arg_types = (semantic_type_t*) malloc(num_args * sizeof(semantic_type_t));    
     int index = 0;
     _extract_recursive(table, param_node, arg_types, &index);
@@ -338,7 +339,9 @@ semantic_type_t* extract_and_store_params(
 }
 
 
-
+/*! 
+    \brief checa argumentos dos nodos e seus filhos recursivamente
+*/
 static void _check_types_recursive(symbol_t* func, asd_tree_t* arg, int* index) {    
     #ifdef DEBUG_ON
     printf("[ARG CHECK] nó='%s', tipo=%d, filhos=%d, index=%d\n", 
@@ -362,6 +365,13 @@ static void _check_types_recursive(symbol_t* func, asd_tree_t* arg, int* index) 
 }
 
 
+
+ 
+/*! 
+    \brief funcao chamada na analise de chamada_funcao, para checar lista_parametros 
+    \param func_symbol simbolo com natureza, tipo, argumentos e valor lexico
+    \param arg_node nodo da arvore de derivacao
+*/
 void check_argument_types(symbol_t* func_symbol, asd_tree_t* arg_node) {
     #ifdef DEBUG_ON
     printf("[DEBUG][check_argument_types] Funcao '%s' com %d args esperados.\n", 

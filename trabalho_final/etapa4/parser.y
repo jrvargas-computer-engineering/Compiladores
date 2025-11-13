@@ -197,7 +197,20 @@ lista_opicional_parametros:
         $$ = $1;
     }
 ; 
+/* Em parser.y */
 
+lista_parametros:
+    parametro { 
+        /* Cria um nó "wrapper" para a lista */
+        $$ = asd_new("param_list"); 
+        asd_add_child($$, $1); // Adiciona o primeiro param
+    }
+    | lista_parametros ',' parametro  { /* Recursão à esquerda */
+        $$ = $1; // $1 já é o "param_list"
+        asd_add_child($$, $3); // Adiciona o novo parâmetro
+    }
+;
+/*
 lista_parametros:
     parametro {
         $$ = $1; 
@@ -207,7 +220,7 @@ lista_parametros:
         asd_add_child($$, $3); 
     }
 ;
-
+*/
 
 //Cada parametro consiste no token TK_ID
 //seguido do token TK_ATRIB 
@@ -487,6 +500,22 @@ lista_argumentos_opcional:
 
 //cada argumento eh separado do outro por vírgula. 
 //Um argumento eh uma expressão.
+
+/* Em parser.y */
+
+lista_argumentos:
+    expressao { 
+        /* Cria um nó "wrapper" para a lista */
+        $$ = asd_new("arg_list"); 
+        asd_add_child($$, $1); // Adiciona a primeira expr
+    }
+    | lista_argumentos ',' expressao  { /* Recursão à esquerda */
+        $$ = $1; // $1 já é o "arg_list"
+        asd_add_child($$, $3); // Adiciona a nova expressão
+    }
+;
+
+/*
 lista_argumentos:
     expressao{
         $$ = $1; 
@@ -496,7 +525,7 @@ lista_argumentos:
         asd_add_child($$, $3);
     }
 ; 
-
+*/
 
 //e terminado ou pelo
 //token TK_DECIMAL ou pelo token TK_INTEIRO.

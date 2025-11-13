@@ -3,7 +3,9 @@
 # --- Configuração ---
 COMPILADOR="./etapa4"
 TEST_DIR="../testes/etapa4"
+TEST_S_DIR="../testes/E4"
 SAIDA_DIR="../testes/etapa4/resultados"
+SAIDA_S_DIR="../testes/E4/resultados"
 TOTAL_TESTES=0
 TESTES_PASSARAM=0
 # (Cores, etc.)
@@ -117,6 +119,96 @@ FALHA_IF=(
     "7_10_err_if_nested_conflict.txt:30"
 )
 
+TESTES_S_FALHA=(
+    "qwe00:10"
+    "qwe01:10"
+    "qwe02:10"
+    "qwe03:10"
+    "qwe10:10"
+    "qwe11:10"
+    "qwe12:10"
+    "qwe13:10"
+    "qwe14:10"
+    "qwe15:10"
+    "qwe16:11"
+    "qwe17:11"
+    "qwe18:11"
+    "qwe19:11"
+    "qwe20:11"
+    "qwe21:11"
+    "qwe22:11"
+    "qwe23:11"
+    "qwe24:11"
+    "qwe27:11"
+    "qwe28:11"
+    "qwe29:11"
+    "qwe34:20"
+    "qwe35:20"
+    "qwe36:20"
+    "qwe37:20"
+    "qwe38:21"
+    "qwe39:21"
+    "qwe40:21"
+    "qwe41:21"
+    "qwe42:40"
+    "qwe43:40"
+    "qwe44:41"
+    "qwe45:41"
+    "qwe46:42"
+    "qwe47:42"
+    "qwe48:42"
+    "qwe49:42"
+    "qwe50:42"
+    "qwe51:42"
+    "qwe52:42"
+    "qwe53:42"
+    "qwe54:42"
+    "qwe55:42"
+    "qwe56:42"
+    "qwe57:42"
+    "qwe58:42"
+    "qwe59:42"
+    "qwe60:42"
+    "qwe61:42"
+    "qwe62:42"
+    "qwe63:42"
+    "qwe64:42"
+    "qwe65:30"
+    "qwe66:30"
+    "qwe67:30"
+    "qwe68:30"
+    "qwe69:30"
+    "qwe70:30"
+    "qwe71:30"
+    "qwe72:30"
+    "qwe73:30"
+    "qwe74:30"
+    "qwe75:30"
+    "qwe76:30"
+    "qwe77:30"
+    "qwe78:30"
+    "qwe79:30"
+    "qwe80:30"
+    "qwe81:30"
+    "qwe82:30"
+)
+
+
+TESTES_S_SUCESSO=(
+    "qwe04"
+    "qwe05"
+    "qwe06"
+    "qwe07"
+    "qwe08"
+    "qwe09"
+    "qwe30"
+    "qwe31"
+    "qwe32"
+    "qwe33"
+    "qwe25"
+    "qwe26"
+)
+
 # --- Funções de Teste (rodar_teste_sucesso, rodar_teste_falha) ---
 # (Cole as funções da sua versão anterior do script aqui)
 # (Elas já estão corretas, com a captura de erro e
@@ -204,6 +296,89 @@ rodar_teste_falha() {
         fi
     fi
 }
+##############################
+rodar_teste_s_sucesso() {
+    TESTE_ARQUIVO=$1
+    CAMINHO_TESTE="$TEST_S_DIR/$TESTE_ARQUIVO"
+    
+    # === MUDANÇA AQUI: Define nomes de saída dinâmicos ===
+    NOME_BASE="${TESTE_ARQUIVO%.txt}"
+    CAMINHO_DOT="$SAIDA_S_DIR/$NOME_BASE.dot"
+    CAMINHO_PNG="$SAIDA_S_DIR/$NOME_BASE.png"
+    
+    echo -n -e "${AZUL}Rodando (sucesso) ${RESET}: $TESTE_ARQUIVO..."
+    TOTAL_TESTES=$((TOTAL_TESTES + 1))
+
+    if [ ! -f "$CAMINHO_TESTE" ]; then
+        echo -e " ${VERMELHO}[FALHOU]${RESET} (Arquivo $CAMINHO_TESTE não encontrado)"
+        return
+    fi
+
+    # === MUDANÇA AQUI: Redireciona para o CAMINHO_DOT ===
+    ERRO_SAIDA=$({ $COMPILADOR < "$CAMINHO_TESTE" > "$CAMINHO_DOT"; } 2>&1)
+    CODIGO_SAIDA=$?
+
+    if [ $CODIGO_SAIDA -eq 0 ]; then
+        echo -e " ${VERDE}[PASSOU]${RESET} (Código 0)"
+        TESTES_PASSARAM=$((TESTES_PASSARAM + 1))
+        
+        # === MUDANÇA AQUI: Usa os caminhos de .dot e .png ===
+        dot "$CAMINHO_DOT" -Tpng -o "$CAMINHO_PNG"
+    else
+        echo -e " ${VERMELHO}[FALHOU]${RESET} (Esperava 0, recebeu $CODIGO_SAIDA)"
+        if [ ! -z "$ERRO_SAIDA" ]; then
+            echo -e "   ${VERMELHO}Saída(stderr):${RESET} $ERRO_SAIDA"
+        else
+            echo -e "   ${VERMELHO}(Programa não emitiu saída de erro)${RESET}"
+        fi
+    fi
+}
+
+rodar_teste_s_falha() {
+    TESTE_INFO=$1
+    TESTE_ARQUIVO=$(echo "$TESTE_INFO" | cut -d':' -f1)
+    CODIGO_ESPERADO=$(echo "$TESTE_INFO" | cut -d':' -f2)
+    CAMINHO_TESTE="$TEST_S_DIR/$TESTE_ARQUIVO"
+    
+    # === MUDANÇA AQUI: Define nome do .dot (para debug) ===
+    NOME_BASE="${TESTE_ARQUIVO%.txt}"
+    CAMINHO_DOT="$SAIDA_S_DIR/$NOME_BASE.dot"
+    
+    echo -n -e "${AZUL}Rodando (falha)   ${RESET}: $TESTE_ARQUIVO..."
+    TOTAL_TESTES=$((TOTAL_TESTES + 1))
+
+    if [ ! -f "$CAMINHO_TESTE" ]; then
+        echo -e " ${VERMELHO}[FALHOU]${RESET} (Arquivo $CAMINHO_TESTE não encontrado)"
+        return
+    fi
+
+    # === MUDANÇA AQUI: Redireciona para o CAMINHO_DOT ===
+    # (O .dot provavelmente ficará vazio se o compilador sair com erro, o que é ok)
+    ERRO_SAIDA=$({ $COMPILADOR < "$CAMINHO_TESTE" > "$CAMINHO_DOT"; } 2>&1)
+    CODIGO_SAIDA=$?
+
+    if [ $CODIGO_SAIDA -eq "$CODIGO_ESPERADO" ]; then
+        echo -e " ${VERDE}[PASSOU]${RESET} (Recebeu código $CODIGO_SAIDA, como esperado)"
+        TESTES_PASSARAM=$((TESTES_PASSARAM + 1))
+        if [ ! -z "$ERRO_SAIDA" ]; then
+            echo -e "   ${CINZA}Saída(stderr):${RESET} $ERRO_SAIDA"
+        else
+            echo -e "   ${CINZA}(Programa saiu com código $CODIGO_SAIDA, mas sem saída de erro)${RESET}"
+        fi
+    elif [ $CODIGO_SAIDA -eq 0 ]; then
+        echo -e " ${VERMELHO}[FALHOU]${RESET} (Esperava $CODIGO_ESPERADO, recebeu 0 - NÃO PEGOU O ERRO)"
+    else
+        echo -e " ${VERMELHO}[FALHOU]${RESET} (Esperava $CODIGO_ESPERADO, recebeu $CODIGO_SAIDA - CÓDIGO ERRADO)"
+    fi
+    
+    if [ $CODIGO_SAIDA -ne "$CODIGO_ESPERADO" ]; then
+        if [ ! -z "$ERRO_SAIDA" ]; then
+            echo -e "   ${VERMELHO}Saída(stderr):${RESET} $ERRO_SAIDA"
+        else
+            echo -e "   ${VERMELHO}(Programa não emitiu saída de erro)${RESET}"
+        fi
+    fi
+}
 # ...
 
 # --- Execução ---
@@ -222,6 +397,21 @@ if [ ! -d "$TEST_DIR" ]; then
     exit 1
 fi
 
+if [ ! -d "$TEST_S_DIR" ]; then
+    echo -e "${VERMELHO}Erro: Diretório de testes '$TEST_S_DIR' não encontrado.${RESET}"
+    echo "Verifique se você está no diretório correto."
+    exit 1
+fi
+
+if [ ! -d "$SAIDA_S)DIR" ]; then
+    echo -e "${CINZA}Info: Diretório de saída '$SAIDA_S)DIR' não encontrado.${RESET}"
+    echo -e "${CINZA}Criando diretório...${RESET}"
+    mkdir -p "$SAIDA_S_DIR"
+    if [ $? -ne 0 ]; then
+        echo -e "${VERMELHO}Não foi possível criar o diretório de saída. Saindo.${RESET}"
+        exit 1
+    fi
+fi
 if [ ! -d "$SAIDA_DIR" ]; then
     echo -e "${CINZA}Info: Diretório de saída '$SAIDA_DIR' não encontrado.${RESET}"
     echo -e "${CINZA}Criando diretório...${RESET}"
@@ -299,6 +489,18 @@ echo ""
 echo "--- 8. Testes de Erro if/while ---"
 for teste in "${FALHA_IF[@]}"; do
     rodar_teste_falha "$teste"
+done
+
+echo ""
+echo "--- 9. Testes de SUCESSO Schnnor ---"
+for teste in "${TESTES_S_SUCESSO[@]}"; do
+    rodar_teste_s_sucesso "$teste"
+done
+
+echo ""
+echo "--- 10. Testes de FALHA Schnorr ---"
+for teste in "${TESTES_S_FALHA[@]}"; do
+    rodar_teste_s_falha "$teste"
 done
 
 

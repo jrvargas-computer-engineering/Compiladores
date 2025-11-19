@@ -1,3 +1,7 @@
+/* Grupo A - Alunos:
+ Juliana Rodrigres de Vargas- 00337553
+ Sofia Popsin Gomes - 00313563*/
+ 
 #ifndef _ILOC_H_
 #define _ILOC_H_
 
@@ -20,10 +24,16 @@ typedef struct iloc_node {
     
 } iloc_node_t;
 
-// Função auxiliar para criar uma nova instrução (construtor)
-iloc_node_t* new_iloc(char *label, char *opcode, char *arg1, char *arg2, char *arg3);
+// Cria uma nova instrução (nó único)
+iloc_node_t* asd_new_iloc(char *label, char *opcode, char *arg1, char *arg2, char *arg3);
+
+// Adiciona uma instrução ao final de uma lista existente
+iloc_node_t* asd_append_instruction(iloc_node_t *list, iloc_node_t *instruction);
+
+// Concatena duas listas (cola a list2 no final da list1)
+iloc_node_t* asd_concat_lists(iloc_node_t *list1, iloc_node_t *list2);
 
 // Função para liberar a memória de uma lista de instruções
-void free_iloc_list(iloc_node_t *head);
+void asd_free_iloc(iloc_node_t *head);
 
 #endif // _ILOC_H_

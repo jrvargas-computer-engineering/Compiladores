@@ -354,12 +354,28 @@ inicializacao_decimal_opcional:
 
 literal:
     TK_LI_INTEIRO {
+        // 1. Cria o nó da AST
         $$ = new_node_from_lexval($1); 
         $$->data_type = SEMANTIC_TYPE_INT; 
+
+        // 2. Gera um novo registrador temporário para guardar esse número
+        char* reg = make_temp();
+        $$->temp = reg; // Salva na AST para o pai saber onde está o valor
+
+        // 3. Cria a instrução ILOC: loadI valor => registrador
+        // arg1: o valor literal ($1->value)
+        // arg3: o registrador de destino
+        $$->code_head = asd_new_iloc(NULL, "loadI", $1->value, NULL, reg);
+        $$->code_tail = $$->code_head; // Como é só 1 instrução, head == tail
     }
     | TK_LI_DECIMAL {
         $$ = new_node_from_lexval($1); 
         $$->data_type = SEMANTIC_TYPE_FLOAT; 
+
+        char* reg = make_temp();
+        $$->temp = reg;
+        $$->code_head = asd_new_iloc(NULL, "loadI", $1->value, NULL, reg);
+        $$->code_tail = $$->code_head;
     }
 ;
 // ==========  Comandos  ==========
@@ -694,8 +710,33 @@ fator:
         if (simbolo->nature == SYMBOL_FUNCAO) {
             yyerror_semantic("Funcao usada como variavel.", $1->line, ERR_FUNCTION);
         }
+
+        // Cria nó da AST
         $$ = new_node_from_lexval($1); 
         $$->data_type = simbolo->data_type;
+        // --- GERAÇÃO DE CÓDIGO ---
+
+        // 1. Gera registrador para receber o valor da memória
+        char* reg = make_temp();
+        $$->temp = reg;
+
+        // 2. Converte o offset (int) para string
+        char offset_str[16];
+        sprintf(offset_str, "%d", simbolo->offset);
+
+        // 3. Verifica se é Global ou Local e gera a instrução correta
+        if (simbolo->is_global == 1) {
+            // Variável Global: Base RBSS
+            // loadAI rbss, offset => r_reg
+            $$->code_head = asd_new_iloc(NULL, "loadAI", "rbss", offset_str, reg);
+        } else {
+            // Variável Local: Base RFP
+            // loadAI rfp, offset => r_reg
+            $$->code_head = asd_new_iloc(NULL, "loadAI", "rfp", offset_str, reg);
+        }
+        
+        $$->code_tail = $$->code_head;
+        
     }
     | literal { $$ = $1; }
     | chamada_funcao { $$ = $1; }

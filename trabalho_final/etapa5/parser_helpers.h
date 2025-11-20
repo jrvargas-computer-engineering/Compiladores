@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "asd.h" 
 #include "tabela.h"   
+#include "iloc.h"
 
 semantic_type_t last_type(asd_tree_t* bloco);
 asd_tree_t* new_node_from_lexval(lexical_value_t *lexval);

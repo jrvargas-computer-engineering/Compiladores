@@ -625,6 +625,15 @@ expressao:
 expr_nivel7:
     expr_nivel7 '|' expr_nivel6 {
         $$ = new_node_from_binary_op_rel_log("|", $1, $3);
+
+        char* novo_temp = make_temp();
+        $$->temp = novo_temp;
+        
+        // or r1, r2 => r3
+        iloc_node_t* instr = asd_new_iloc(NULL, "or", $1->temp, $3->temp, novo_temp);
+        
+        $$->code_head = asd_concat_lists($1->code_head, $3->code_head);
+        $$->code_head = asd_append_instruction($$->code_head, instr);
     }
     | expr_nivel6  { $$ = $1; }
 ;
@@ -633,6 +642,15 @@ expr_nivel7:
 expr_nivel6:
     expr_nivel6 '&' expr_nivel5  { 
         $$ = new_node_from_binary_op_rel_log("&", $1, $3);
+
+        char* novo_temp = make_temp();
+        $$->temp = novo_temp;
+        
+        // and r1, r2 => r3
+        iloc_node_t* instr = asd_new_iloc(NULL, "and", $1->temp, $3->temp, novo_temp);
+        
+        $$->code_head = asd_concat_lists($1->code_head, $3->code_head);
+        $$->code_head = asd_append_instruction($$->code_head, instr);
     }
     | expr_nivel5 { $$ = $1; }
 ;
@@ -642,9 +660,27 @@ expr_nivel5:
     expr_nivel5 TK_OC_EQ expr_nivel4 {
         $$ = new_node_from_binary_op_rel_log("==", $1, $3);
 
+        char* novo_temp = make_temp();
+        $$->temp = novo_temp;
+        
+        // cmp_EQ r1, r2 -> r3
+        iloc_node_t* instr = asd_new_iloc(NULL, "cmp_EQ", $1->temp, $3->temp, novo_temp);
+        
+        $$->code_head = asd_concat_lists($1->code_head, $3->code_head);
+        $$->code_head = asd_append_instruction($$->code_head, instr);
+
     }
     | expr_nivel5 TK_OC_NE expr_nivel4 {
         $$ = new_node_from_binary_op_rel_log("!=", $1, $3);
+        
+        char* novo_temp = make_temp();
+        $$->temp = novo_temp;
+        
+        // cmp_NE r1, r2 -> r3
+        iloc_node_t* instr = asd_new_iloc(NULL, "cmp_NE", $1->temp, $3->temp, novo_temp);
+        
+        $$->code_head = asd_concat_lists($1->code_head, $3->code_head);
+        $$->code_head = asd_append_instruction($$->code_head, instr);
  
     }
     | expr_nivel4 { $$ = $1; }
@@ -655,17 +691,49 @@ expr_nivel4:
     expr_nivel4 '<' expr_nivel3 {
         $$ = new_node_from_binary_op_rel_log("<", $1, $3);
 
+        char* novo_temp = make_temp();
+        $$->temp = novo_temp;
+        
+        iloc_node_t* instr = asd_new_iloc(NULL, "cmp_LT", $1->temp, $3->temp, novo_temp);
+        
+        $$->code_head = asd_concat_lists($1->code_head, $3->code_head);
+        $$->code_head = asd_append_instruction($$->code_head, instr);
+
     }
     | expr_nivel4 '>' expr_nivel3{
         $$ = new_node_from_binary_op_rel_log(">", $1, $3);
+
+        char* novo_temp = make_temp();
+        $$->temp = novo_temp;
+        
+        iloc_node_t* instr = asd_new_iloc(NULL, "cmp_GT", $1->temp, $3->temp, novo_temp);
+        
+        $$->code_head = asd_concat_lists($1->code_head, $3->code_head);
+        $$->code_head = asd_append_instruction($$->code_head, instr);
 
     }
     | expr_nivel4 TK_OC_LE expr_nivel3{
         $$ = new_node_from_binary_op_rel_log("<=", $1, $3);
 
+        char* novo_temp = make_temp();
+        $$->temp = novo_temp;
+        
+        iloc_node_t* instr = asd_new_iloc(NULL, "cmp_LE", $1->temp, $3->temp, novo_temp);
+        
+        $$->code_head = asd_concat_lists($1->code_head, $3->code_head);
+        $$->code_head = asd_append_instruction($$->code_head, instr);
+
     }
     | expr_nivel4 TK_OC_GE expr_nivel3{
         $$ = new_node_from_binary_op_rel_log(">=", $1, $3);
+
+        char* novo_temp = make_temp();
+        $$->temp = novo_temp;
+        
+        iloc_node_t* instr = asd_new_iloc(NULL, "cmp_GE", $1->temp, $3->temp, novo_temp);
+        
+        $$->code_head = asd_concat_lists($1->code_head, $3->code_head);
+        $$->code_head = asd_append_instruction($$->code_head, instr);
 
     }
     | expr_nivel3 { $$ = $1; }

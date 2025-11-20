@@ -580,6 +580,7 @@ construcoes_fluxo_controle:
 
 comando_condicional:
     TK_SE '(' expressao ')' bloco_comandos senao_opcional {
+        // 1. Criação dos nós da Árvore (AST)
         $$ = new_node_from_binary_op("se", $3, $5);
         if ($6 != NULL) 
             asd_add_child($$, $6);
@@ -597,6 +598,88 @@ comando_condicional:
 
         // O tipo do comando if é o tipo da expressão de teste
         $$->data_type = $3->data_type;
+
+        // --- GERAÇÃO DE CÓDIGO ILOC (ETAPA 5) ---
+        if ($6 == NULL) { 
+            // CASO 1: IF SEM ELSE
+            
+            // A. Gerar Rótulos
+            char* L_true = make_label();
+            char* L_next = make_label();
+
+            // B. Gerar cbr r_cond -> L_true, L_next
+            // Se verdadeiro, entra no bloco. Se falso, pula para o final (next).
+            iloc_node_t* cbr = asd_new_iloc(NULL, "cbr", $3->temp, L_true, L_next);
+
+            // C. Definir label L_true (Início do bloco)
+            iloc_node_t* label_true = asd_new_iloc(L_true, "nop", NULL, NULL, NULL);
+
+            // D. Definir label L_next (Fim do IF)
+            iloc_node_t* label_next = asd_new_iloc(L_next, "nop", NULL, NULL, NULL);
+
+            // E. Montagem (Concatenação)
+            // 1. Código da Condição
+            $$->code_head = $3->code_head;
+            
+            // 2. Avaliação (CBR)
+            $$->code_head = asd_append_instruction($$->code_head, cbr);
+            
+            // 3. Rótulo True + Código do Bloco
+            $$->code_head = asd_append_instruction($$->code_head, label_true);
+            if ($5 != NULL) {
+                $$->code_head = asd_concat_lists($$->code_head, $5->code_head);
+            }
+
+            // 4. Rótulo Next (Saída)
+            $$->code_head = asd_append_instruction($$->code_head, label_next);
+
+        } else {
+            // Requer 3 rótulos: True, False (Else) e Next (Saída)
+            char* L_true = make_label();
+            char* L_false = make_label();
+            char* L_next = make_label();
+
+            // 1. Avaliação: cbr r_cond -> L_true, L_false
+            // Se true vai pro bloco if, se false vai pro bloco else
+            iloc_node_t* cbr = asd_new_iloc(NULL, "cbr", $3->temp, L_true, L_false);
+
+            // 2. Rótulo do Bloco TRUE
+            iloc_node_t* label_true = asd_new_iloc(L_true, "nop", NULL, NULL, NULL);
+            
+            // 3. Salto para pular o Else: jumpI -> L_next
+            // Isso fica no final do bloco True
+            iloc_node_t* jump_exit = asd_new_iloc(NULL, "jumpI", NULL, L_next, NULL);
+
+            // 4. Rótulo do Bloco FALSE (Else)
+            iloc_node_t* label_false = asd_new_iloc(L_false, "nop", NULL, NULL, NULL);
+
+            // 5. Rótulo de Saída (L_next)
+            iloc_node_t* label_next = asd_new_iloc(L_next, "nop", NULL, NULL, NULL);
+
+            // --- MONTAGEM ---
+            // A. Código da Condição
+            $$->code_head = $3->code_head;
+
+            // B. Teste (cbr)
+            $$->code_head = asd_append_instruction($$->code_head, cbr);
+
+            // C. Bloco TRUE
+            $$->code_head = asd_append_instruction($$->code_head, label_true);
+            if ($5 != NULL) {
+                $$->code_head = asd_concat_lists($$->code_head, $5->code_head);
+            }
+            // D. Pulo para o final (para não entrar no else)
+            $$->code_head = asd_append_instruction($$->code_head, jump_exit);
+
+            // E. Bloco FALSE (Else)
+            $$->code_head = asd_append_instruction($$->code_head, label_false);
+            if ($6 != NULL) {
+                $$->code_head = asd_concat_lists($$->code_head, $6->code_head);
+            }
+
+            // F. Rótulo Final
+            $$->code_head = asd_append_instruction($$->code_head, label_next);
+        }
     }
 ;
 
@@ -611,8 +694,59 @@ comando_enquanto:
         //if ($3->data_type != SEMANTIC_TYPE_INT) {
         //    yyerror_semantic("Expressao de teste do 'enquanto' deve ser do tipo inteiro.", $3->line, ERR_WRONG_TYPE);
         //}
+
+        // 1. Criação do Nó AST
         $$ = new_node_from_binary_op("enquanto", $3, $5);
         $$->data_type = $3->data_type; 
+
+        // --- GERAÇÃO DE CÓDIGO ILOC ---
+        // 2. Criar os 3 rótulos necessários
+        char* L_cond = make_label(); // Onde o teste começa (alvo do loop)
+        char* L_body = make_label(); // Onde o corpo começa (se true)
+        char* L_next = make_label(); // Onde o programa continua (se false)
+
+        // 3. Criar as instruções de fluxo
+        
+        // Label no início da condição
+        iloc_node_t* label_cond = asd_new_iloc(L_cond, "nop", NULL, NULL, NULL);
+        
+        // Teste: Se verdadeiro vai pro corpo, se falso sai
+        // cbr r_cond -> L_body, L_next
+        iloc_node_t* cbr = asd_new_iloc(NULL, "cbr", $3->temp, L_body, L_next);
+        
+        // Label no início do corpo
+        iloc_node_t* label_body = asd_new_iloc(L_body, "nop", NULL, NULL, NULL);
+        
+        // Pulo incondicional de volta para o teste (Loop)
+        // jumpI -> L_cond
+        iloc_node_t* jump_loop = asd_new_iloc(NULL, "jumpI", NULL, L_cond, NULL);
+        
+        // Label de saída
+        iloc_node_t* label_next = asd_new_iloc(L_next, "nop", NULL, NULL, NULL);
+
+        // --- MONTAGEM DA LISTA (A ordem importa muito!) ---
+        // A. Marca o início do teste (L_cond)
+        $$->code_head = label_cond;
+
+        // B. Cola o código que calcula a expressão (gera r_cond)
+        $$->code_head = asd_concat_lists($$->code_head, $3->code_head);
+
+        // C. Avalia o resultado (cbr)
+        $$->code_head = asd_append_instruction($$->code_head, cbr);
+
+        // D. Marca o início do corpo (L_body)
+        $$->code_head = asd_append_instruction($$->code_head, label_body);
+
+        // E. Cola o código do bloco de comandos
+        if ($5 != NULL) {
+            $$->code_head = asd_concat_lists($$->code_head, $5->code_head);
+        }
+
+        // F. Volta para o início para testar de novo (Loop)
+        $$->code_head = asd_append_instruction($$->code_head, jump_loop);
+
+        // G. Marca a saída (L_next)
+        $$->code_head = asd_append_instruction($$->code_head, label_next);
     }
 ;
 
@@ -824,6 +958,17 @@ expr_nivel1:
         }
         $$ = new_node_from_unary_op("!", $2);
         $$->data_type = SEMANTIC_TYPE_INT; 
+
+        char* novo_temp = make_temp();
+        $$->temp = novo_temp;
+
+        // Implementação do NOT: xorI r_origem, 1 => r_destino
+        // Inverte o bit menos significativo (0->1, 1->0)
+        iloc_node_t* instr = asd_new_iloc(NULL, "xorI", $2->temp, "1", novo_temp);
+        
+        // O código é apenas o código do filho + a instrução XOR
+        $$->code_head = asd_append_instruction($2->code_head, instr);
+
     }
     | fator { $$ = $1; }
 ;

@@ -36,4 +36,10 @@ iloc_node_t* asd_concat_lists(iloc_node_t *list1, iloc_node_t *list2);
 // Função para liberar a memória de uma lista de instruções
 void asd_free_iloc(iloc_node_t *head);
 
+// Função que retorna um nome de registrador temporário único a cada chamada (ex: r0, r1, r2...).
+char* make_temp(void);
+
+// Função que retorna um rótulo único a cada chamada (ex: L0, L1, L2...).
+char* make_label(void);
+
 #endif // _ILOC_H_

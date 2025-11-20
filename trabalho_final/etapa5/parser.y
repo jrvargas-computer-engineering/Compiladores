@@ -155,6 +155,8 @@ cabecalho_funcao:
         $$ = asd_new($1->value); 
         $$->data_type = $3; 
 
+        reset_local_offset(); // Zera o contador rfp para a nova função
+
         /* CRIAR ESCOPO DA FUNCAO */
         table_t* tabela_funcao = table_create();
 

@@ -31,6 +31,8 @@ typedef struct symbol_entry {
     int num_args; 
     lexical_value_t *token_data;      
     int line;            
+    int offset;     // Deslocamento em bytes (0, 4, 8...)
+    int is_global;  // 1 se for global (rbss), 0 se for local (rfp)
 } symbol_t;
 
 
@@ -80,4 +82,8 @@ void check_argument_types(symbol_t* func_symbol, asd_tree_t* arg_node);
 
 /*debug */
 void print_arg_tree(asd_tree_t* node, int depth); 
+
+/* --- INTERFACE CONTADORES DE OFFSETS --- */
+// função para resetar o contador local ao iniciar uma função
+void reset_local_offset(void);
 #endif 

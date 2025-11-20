@@ -4,7 +4,11 @@
 #include "tabela.h"
 #include "diretivas.h"
 #define STACK_MAX_SIZE 256  
-#define TABLE_INITIAL_CAPACITY 16 
+#define TABLE_INITIAL_CAPACITY 16
+#define BYTE_SIZE 4 // Inteiros e floats ocupam 4 bytes 
+
+static int global_byte_count = 0; // Contador para rbss
+static int local_byte_count = 0;  // Contador para rfp
 
 /*  =====================================================
     ====================== Debug ========================
@@ -116,10 +120,40 @@ void table_free(table_t* table) {
 //TODO conferir realloc
 void table_insert(table_t* table, symbol_t* symbol) {
     if (table == NULL || symbol == NULL) return;
+    
+    // Realocação se necessário
     if (table->count >= table->allocated_size) {
         table->allocated_size *= 2;
         table->symbols = (symbol_t**) realloc(table->symbols, table->allocated_size * sizeof(symbol_t*));
     }    
+    
+    // --- LÓGICA DE ENDEREÇAMENTO (ETAPA 5) ---
+    // Apenas Variáveis e Parâmetros precisam de endereço em memória. 
+    if (symbol->nature == SYMBOL_ID) { // Se for identificador (variável ou param)
+        
+        // Verifica se a tabela atual é a Global (base da pilha de escopos)
+        // scope_stack[0] é sempre o escopo global
+        if (table == scope_stack[0]) {
+            symbol->is_global = 1;
+            symbol->offset = global_byte_count;
+            global_byte_count += BYTE_SIZE;
+        } else {
+            symbol->is_global = 0;
+            symbol->offset = local_byte_count;
+            local_byte_count += BYTE_SIZE;
+        }
+        
+        #ifdef DEBUG_ON
+        printf("[DEBUG] Var '%s' alocada. Global? %d. Offset: %d\n", 
+               symbol->key, symbol->is_global, symbol->offset);
+        #endif
+    } else {
+        // Literais e Funções não ocupam espaço no frame de dados/pilha dessa forma
+        symbol->offset = -1;
+        symbol->is_global = -1;
+    }
+
+    // Inserção original
     table->symbols[table->count] = symbol;
     table->count++;
 }
@@ -275,4 +309,19 @@ void check_argument_types(symbol_t* func_symbol, asd_tree_t* arg_list_node) {
             yyerror_semantic("Argumento de tipo incompativel.", arg_node->line, ERR_WRONG_TYPE_ARGS);
         }
     }
+}
+
+
+/*  =====================================================
+    ============== Contadores de Offsets =================
+    =====================================================
+    Modificar a inserção na Tabela de Símbolos para
+    calcular os endereços (offsets) das variáveis.
+    Manter um contador de bytes para variáveis Globais
+    (base rbss) e um contador para variáveis Locais
+    (base rfp).
+*/
+// Função para ser chamada no parser quando começar uma nova função
+void reset_local_offset(void) {
+    local_byte_count = 0;
 }

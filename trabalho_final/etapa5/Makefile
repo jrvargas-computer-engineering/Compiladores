@@ -8,7 +8,7 @@ CC=gcc
 TARGET = etapa5
 
 # arquivos de objeto
-OBJ = main.o parser.tab.o lex.yy.o asd.o tabela.o parser_helpers.o 
+OBJ = main.o parser.tab.o lex.yy.o asd.o tabela.o parser_helpers.o iloc.o diretivas.o types.o
 
 #flags
 CFLAGS = -g -Wall -Werror -fsanitize=address

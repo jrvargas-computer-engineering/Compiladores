@@ -448,6 +448,7 @@ lista_comando_simples:
 // Consiste no token TK_ID seguido do token TK_ATRIB seguido de uma expressão
 comando_atribuicao:
     TK_ID TK_ATRIB expressao {
+        // --- Buscas e Verificações Semânticas ---
         symbol_t* simbolo = stack_find_global($1->value);
         
         if (simbolo == NULL) {
@@ -461,11 +462,33 @@ comando_atribuicao:
             yyerror_semantic("Atribuicao de tipo incompativel.", $1->line, ERR_WRONG_TYPE);
         }
 
+        // --- Criação do Nó AST ---
         $$ = asd_new(":="); 
         asd_tree_t* tk_id_no = asd_new($1->value);
-        tk_id_no->data_type = simbolo->data_type;
+        tk_id_no->data_type = simbolo->data_type; // Decorando o nó ID
         asd_add_child($$, tk_id_no); 
-        asd_add_child($$, $3);      
+        asd_add_child($$, $3);   
+        
+        // --- GERAÇÃO DE CÓDIGO ILOC ---
+        
+        // 1. Converte o offset do símbolo para string
+        char offset_str[16];
+        sprintf(offset_str, "%d", simbolo->offset);
+
+        // 2. Define a base (RFP ou RBSS)
+        char* base_reg = (simbolo->is_global) ? "rbss" : "rfp";
+
+        // 3. Cria a instrução storeAI: guarda o temp da expressão no endereço da variável
+        // storeAI r_expr => base, offset
+        iloc_node_t* instr = asd_new_iloc(NULL, "storeAI", $3->temp, base_reg, offset_str);
+
+        // 4. O código da atribuição é: Código da Expressão + Store
+        $$->code_head = asd_concat_lists($3->code_head, instr);
+        
+        // Atribuição não gera valor de retorno em registrador (geralmente), então $$->temp pode ser NULL
+        $$->temp = NULL; 
+
+        // Libera tokens
         free($1->value);
         free($1);
     }
@@ -651,10 +674,32 @@ expr_nivel4:
 // Nível 3: Soma e Subtração (Binários)
 expr_nivel3:
     expr_nivel3 '+' expr_nivel2{
+        // 1. Cria nó da árvore
         $$ = new_node_from_binary_op_arit("+", $1, $3);
+
+        // 2. Gera novo temporário para o resultado
+        char* novo_temp = make_temp();
+        $$->temp = novo_temp;
+        
+        // 3. Cria a instrução ILOC: add r_esq, r_dir => r_novo
+        iloc_node_t* instr = asd_new_iloc(NULL, "add", $1->temp, $3->temp, novo_temp);
+        
+        // 4. Concatena: Código Esq + Código Dir + Instrução Nova
+        $$->code_head = asd_concat_lists($1->code_head, $3->code_head);
+        $$->code_head = asd_append_instruction($$->code_head, instr);
+
+
     }
     | expr_nivel3 '-' expr_nivel2 {
         $$ = new_node_from_binary_op_arit("-", $1, $3);
+
+        char* novo_temp = make_temp();
+        $$->temp = novo_temp;
+        
+        iloc_node_t* instr = asd_new_iloc(NULL, "sub", $1->temp, $3->temp, novo_temp);
+        
+        $$->code_head = asd_concat_lists($1->code_head, $3->code_head);
+        $$->code_head = asd_append_instruction($$->code_head, instr);
 
     }
     | expr_nivel2 { $$ = $1; }
@@ -664,9 +709,25 @@ expr_nivel3:
 expr_nivel2:
     expr_nivel2 '*' expr_nivel1 {
         $$ = new_node_from_binary_op_arit("*", $1, $3);
+
+        char* novo_temp = make_temp();
+        $$->temp = novo_temp;
+        
+        iloc_node_t* instr = asd_new_iloc(NULL, "mult", $1->temp, $3->temp, novo_temp);
+        
+        $$->code_head = asd_concat_lists($1->code_head, $3->code_head);
+        $$->code_head = asd_append_instruction($$->code_head, instr);
     }
     | expr_nivel2 '/' expr_nivel1 {
         $$ = new_node_from_binary_op_arit("/", $1, $3);
+
+        char* novo_temp = make_temp();
+        $$->temp = novo_temp;
+        
+        iloc_node_t* instr = asd_new_iloc(NULL, "div", $1->temp, $3->temp, novo_temp);
+        
+        $$->code_head = asd_concat_lists($1->code_head, $3->code_head);
+        $$->code_head = asd_append_instruction($$->code_head, instr);
     }
     | expr_nivel2 '%' expr_nivel1 {
         if ($1->data_type != SEMANTIC_TYPE_INT || $3->data_type != SEMANTIC_TYPE_INT) {
@@ -736,7 +797,7 @@ fator:
         }
         
         $$->code_tail = $$->code_head;
-        
+
     }
     | literal { $$ = $1; }
     | chamada_funcao { $$ = $1; }

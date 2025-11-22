@@ -75,11 +75,14 @@ void asd_free_iloc(iloc_node_t *head) {
     while (current != NULL) {
         iloc_node_t *next = current->next;
         
+        // Libera as strings se existirem
         if (current->label) free(current->label);
         if (current->opcode) free(current->opcode);
         if (current->arg1) free(current->arg1);
         if (current->arg2) free(current->arg2);
         if (current->arg3) free(current->arg3);
+        
+        // Libera o próprio nó
         free(current);
         
         current = next;
@@ -116,4 +119,60 @@ char* make_label(void) {
     snprintf(buffer, 64, "L%d", label_count++);
     
     return strdup(buffer);
+}
+
+void asd_print_code(iloc_node_t *head) {
+    iloc_node_t *current = head;
+    while (current != NULL) {
+        // 1. Imprime Label se houver
+        if (current->label) {
+            printf("%s: ", current->label);
+        }
+
+        // 2. Formatação baseada no Opcode
+        if (current->opcode) {
+            printf("%s ", current->opcode);
+            
+            // Grupo de Controle de Fluxo (usam ->)
+            if (strcmp(current->opcode, "jumpI") == 0) {
+                // jumpI -> L1
+                printf("-> %s", current->arg1);
+            }
+            else if (strcmp(current->opcode, "jump") == 0) {
+                // jump -> r1
+                printf("-> %s", current->arg1);
+            }
+            else if (strcmp(current->opcode, "cbr") == 0) {
+                // cbr r1 -> L2, L3
+                printf("%s -> %s, %s", current->arg1, current->arg2, current->arg3);
+            }
+            else if (strncmp(current->opcode, "cmp_", 4) == 0) {
+                // cmp_EQ r1, r2 -> r3
+                printf("%s, %s -> %s", current->arg1, current->arg2, current->arg3);
+            }
+            // Grupo Store (storeAI r1 => r2, c3)
+            else if (strncmp(current->opcode, "store", 5) == 0 || 
+                     strncmp(current->opcode, "cstore", 6) == 0) {
+                if (current->arg3)
+                    printf("%s => %s, %s", current->arg1, current->arg2, current->arg3);
+                else
+                    printf("%s => %s", current->arg1, current->arg2); // store r1 => r2
+            }
+            // Grupo Load (loadAI r1, c2 => r3) e Aritmética
+            else {
+                if (current->arg1 && current->arg2 && current->arg3) {
+                    // add r1, r2 => r3  OU  loadAI r1, c2 => r3
+                    printf("%s, %s => %s", current->arg1, current->arg2, current->arg3);
+                }
+                else if (current->arg1 && current->arg3) { // Ex: loadI c1 => r2 (arg2 null)
+                     printf("%s => %s", current->arg1, current->arg3);
+                }
+                else if (current->arg1 && current->arg2) { // Ex: i2i r1 => r2
+                     printf("%s => %s", current->arg1, current->arg2);
+                }
+            }
+        }
+        printf("\n");
+        current = current->next;
+    }
 }

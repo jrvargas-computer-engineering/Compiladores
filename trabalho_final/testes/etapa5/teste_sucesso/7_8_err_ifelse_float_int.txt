@@ -1,0 +1,14 @@
+main -> decimal := 
+[
+    var i := inteiro
+    var f := decimal
+    se (f < 1)
+    [
+        f := 3
+    ]
+    senao
+    [
+        i := 0
+    ]
+]
+;

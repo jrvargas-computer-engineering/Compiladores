@@ -1,0 +1,9 @@
+funcao_constante -> decimal :=
+[
+    var contador := inteiro
+    var resultado_decimal := decimal com 1
+    var var_usada_como_func := decimal com 1
+    resultado_decimal := var_usada_como_func(contador, contador + 1)
+
+    retorna 3 := decimal
+];

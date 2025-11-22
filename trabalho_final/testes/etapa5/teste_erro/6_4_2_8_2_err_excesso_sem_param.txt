@@ -1,0 +1,11 @@
+funcao_constante -> inteiro :=
+[
+    retorna 1 := inteiro
+],
+
+principal -> inteiro :=
+[
+    var y := inteiro
+    y := funcao_constante(10)
+    retorna 0 := inteiro
+];

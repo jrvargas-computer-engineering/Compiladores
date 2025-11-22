@@ -43,6 +43,11 @@ void asd_free(asd_tree_t *tree)
     }
     free(tree->children);
     free(tree->label);
+    
+    if (tree->temp != NULL) {
+        free(tree->temp);
+    }
+
     free(tree);
   }else{
     #ifdef DEBUG_ON

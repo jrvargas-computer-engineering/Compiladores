@@ -1,0 +1,11 @@
+soma -> inteiro com a := inteiro, b := inteiro :=
+[
+    retorna a + b := inteiro
+],
+
+principal -> inteiro :=
+[
+    var x := decimal
+    x := (soma(2, 3) * 4) / 2
+    retorna 0 := inteiro
+];

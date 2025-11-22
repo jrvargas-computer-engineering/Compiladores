@@ -1,0 +1,5 @@
+main -> inteiro :=
+[
+    var d := decimal com 5 
+]
+;

@@ -1,0 +1,74 @@
+=========================================
+ INICIANDO BATERIA DE TESTES (ETAPA 5) 
+=========================================
+
+---------------------------------------------------
+[1] Testando: 3_1_teste_3_1_err_declared_global.txt
+---------------------------------------------------
+[1/2] Compilando ../testes/etapa5/error/3_1_teste_3_1_err_declared_global.txt...
+❌ Erro de Compilação! Abortando.
+>>> CONTEÚDO DE saida.iloc (Erros/Debug):
+Erro semantico (Linha 3): Identificador ja declarado.
+--------------------------------------------
+>> ALERTA: Ocorreu um erro na execução deste teste.
+
+---------------------------------------------------
+[2] Testando: 3_2_teste_3_2_err_declared_funcao.txt
+---------------------------------------------------
+[1/2] Compilando ../testes/etapa5/error/3_2_teste_3_2_err_declared_funcao.txt...
+❌ Erro de Compilação! Abortando.
+>>> CONTEÚDO DE saida.iloc (Erros/Debug):
+Erro semantico (Linha 3): Funcao ja declarada.
+--------------------------------------------
+>> ALERTA: Ocorreu um erro na execução deste teste.
+
+---------------------------------------------------
+[3] Testando: 3_3_teste_3_3_err_declared_local.txt
+---------------------------------------------------
+[1/2] Compilando ../testes/etapa5/error/3_3_teste_3_3_err_declared_local.txt...
+❌ Erro de Compilação! Abortando.
+>>> CONTEÚDO DE saida.iloc (Erros/Debug):
+Erro semantico (Linha 8): Identificador ja declarado.
+--------------------------------------------
+>> ALERTA: Ocorreu um erro na execução deste teste.
+
+---------------------------------------------------
+[4] Testando: 3_4_grupo_redeclaracao_func_dec.txt
+---------------------------------------------------
+[1/2] Compilando ../testes/etapa5/error/3_4_grupo_redeclaracao_func_dec.txt...
+❌ Erro de Compilação! Abortando.
+>>> CONTEÚDO DE saida.iloc (Erros/Debug):
+Erro semantico (Linha 6): Funcao ja declarada.
+--------------------------------------------
+>> ALERTA: Ocorreu um erro na execução deste teste.
+
+---------------------------------------------------
+[5] Testando: 3_5_grupo_redeclaracao_func_int.txt
+---------------------------------------------------
+[1/2] Compilando ../testes/etapa5/error/3_5_grupo_redeclaracao_func_int.txt...
+❌ Erro de Compilação! Abortando.
+>>> CONTEÚDO DE saida.iloc (Erros/Debug):
+Erro semantico (Linha 6): Funcao ja declarada.
+--------------------------------------------
+>> ALERTA: Ocorreu um erro na execução deste teste.
+
+---------------------------------------------------
+[6] Testando: 3_6_grupo_redeclaracao_var_global_dec.txt
+---------------------------------------------------
+[1/2] Compilando ../testes/etapa5/error/3_6_grupo_redeclaracao_var_global_dec.txt...
+❌ Erro de Compilação! Abortando.
+>>> CONTEÚDO DE saida.iloc (Erros/Debug):
+Erro semantico (Linha 2): Identificador ja declarado.
+--------------------------------------------
+>> ALERTA: Ocorreu um erro na execução deste teste.
+
+---------------------------------------------------
+[7] Testando: 3_7_grupo_redeclaracao_var_global_int.txt
+---------------------------------------------------
+[1/2] Compilando ../testes/etapa5/error/3_7_grupo_redeclaracao_var_global_int.txt...
+❌ Erro de Compilação! Abortando.
+>>> CONTEÚDO DE saida.iloc (Erros/Debug):
+Erro semantico (Linha 2): Identificador ja declarado.
+--------------------------------------------
+>> ALERTA: Ocorreu um erro na execução deste teste.
+

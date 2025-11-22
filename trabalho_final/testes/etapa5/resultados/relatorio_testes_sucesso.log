@@ -1,0 +1,356 @@
+=========================================
+ INICIANDO BATERIA DE TESTES (ETAPA 5) 
+=========================================
+
+---------------------------------------------------
+[1] Testando: 1_10_grupo_teste.txt
+---------------------------------------------------
+[1/2] Compilando ../testes/etapa5/teste_sucesso/1_10_grupo_teste.txt...
+[2/2] Simulando execução...
+---------------------------------------------------
+0 ['loadI', 1, 'r0']
+1 ['halt']
+count	instruction
+    1	loadI
+    1	halt
+
+instructions executed:    2
+register         read:    0 write:    3
+memory           read:    0 write:    0
+
+  register    value
+        r0        1
+      rbss        0
+       rfp     1024
+       rpc        1
+       rsp     1024
+
+    memory    value
+>> Execução finalizada.
+
+---------------------------------------------------
+[2] Testando: 1_1_teste_1_1_sucesso_simples.txt
+---------------------------------------------------
+[1/2] Compilando ../testes/etapa5/teste_sucesso/1_1_teste_1_1_sucesso_simples.txt...
+[2/2] Simulando execução...
+---------------------------------------------------
+0 ['loadI', 10, 'r0']
+1 ['storeAI', 'r0', 'rbss', 0]
+count	instruction
+    1	loadI
+    1	storeAI
+
+instructions executed:    2
+register         read:    2 write:    3
+memory           read:    0 write:    1
+
+  register    value
+        r0       10
+      rbss        0
+       rfp     1024
+       rpc        1
+       rsp     1024
+
+    memory    value
+00000000       10
+>> Execução finalizada.
+
+---------------------------------------------------
+[3] Testando: 1_2_teste_1_2_sucesso_funcao.txt
+---------------------------------------------------
+[1/2] Compilando ../testes/etapa5/teste_sucesso/1_2_teste_1_2_sucesso_funcao.txt...
+[2/2] Simulando execução...
+---------------------------------------------------
+0 ['loadI', 10, 'r0']
+1 ['halt']
+count	instruction
+    1	loadI
+    1	halt
+
+instructions executed:    2
+register         read:    0 write:    3
+memory           read:    0 write:    0
+
+  register    value
+        r0       10
+      rbss        0
+       rfp     1024
+       rpc        1
+       rsp     1024
+
+    memory    value
+>> Execução finalizada.
+
+---------------------------------------------------
+[4] Testando: 1_3_teste_1_3_sucesso_shadowing.txt
+---------------------------------------------------
+[1/2] Compilando ../testes/etapa5/teste_sucesso/1_3_teste_1_3_sucesso_shadowing.txt...
+[2/2] Simulando execução...
+---------------------------------------------------
+0 ['loadI', 10, 'r0']
+1 ['storeAI', 'r0', 'rfp', 0]
+2 ['loadI', 5, 'r1']
+3 ['halt']
+count	instruction
+    2	loadI
+    1	storeAI
+    1	halt
+
+instructions executed:    4
+register         read:    2 write:    6
+memory           read:    0 write:    1
+
+  register    value
+        r0       10
+        r1        5
+      rbss        0
+       rfp     1024
+       rpc        3
+       rsp     1024
+
+    memory    value
+00001024       10
+>> Execução finalizada.
+
+---------------------------------------------------
+[5] Testando: 1_4_teste_1_4_sucesso_aninhado.txt
+---------------------------------------------------
+[1/2] Compilando ../testes/etapa5/teste_sucesso/1_4_teste_1_4_sucesso_aninhado.txt...
+[2/2] Simulando execução...
+---------------------------------------------------
+0 ['loadAI', 'rfp', 0, 'r0']
+1 ['loadAI', 'rfp', 4, 'r1']
+2 ['add', 'r0', 'r1', 'r2']
+3 ['storeAI', 'r2', 'rbss', 0]
+count	instruction
+    2	loadAI
+    1	add
+    1	storeAI
+
+instructions executed:    4
+register         read:    6 write:    7
+memory           read:    2 write:    1
+
+  register    value
+        r0        0
+        r1        0
+        r2        0
+      rbss        0
+       rfp     1024
+       rpc        3
+       rsp     1024
+
+    memory    value
+00000000        0
+>> Execução finalizada.
+
+---------------------------------------------------
+[6] Testando: 1_5_teste_1_5_sucesso_parametros.txt
+---------------------------------------------------
+[1/2] Compilando ../testes/etapa5/teste_sucesso/1_5_teste_1_5_sucesso_parametros.txt...
+[2/2] Simulando execução...
+---------------------------------------------------
+0 ['loadAI', 'rfp', 0, 'r0']
+1 ['loadAI', 'rfp', 4, 'r1']
+2 ['add', 'r0', 'r1', 'r2']
+3 ['halt']
+count	instruction
+    2	loadAI
+    1	add
+    1	halt
+
+instructions executed:    4
+register         read:    4 write:    7
+memory           read:    2 write:    0
+
+  register    value
+        r0        0
+        r1        0
+        r2        0
+      rbss        0
+       rfp     1024
+       rpc        3
+       rsp     1024
+
+    memory    value
+>> Execução finalizada.
+
+---------------------------------------------------
+[7] Testando: 1_6_teste_1_6_sucesso_arit_float.txt
+---------------------------------------------------
+[1/2] Compilando ../testes/etapa5/teste_sucesso/1_6_teste_1_6_sucesso_arit_float.txt...
+[2/2] Simulando execução...
+---------------------------------------------------
+0 ['loadI', 10, 'r0']
+1 ['storeAI', 'r0', 'rfp', 0]
+2 ['loadI', 2, 'r1']
+3 ['storeAI', 'r1', 'rfp', 4]
+4 ['loadAI', 'rfp', 0, 'r2']
+5 ['loadAI', 'rfp', 4, 'r3']
+6 ['loadAI', 'rfp', 0, 'r4']
+7 ['loadAI', 'rfp', 4, 'r5']
+8 ['div', 'r4', 'r5', 'r6']
+9 ['add', 'r3', 'r6', 'r7']
+10 ['loadAI', 'rfp', 4, 'r8']
+11 ['sub', 'r7', 'r8', 'r9']
+12 ['mult', 'r2', 'r9', 'r10']
+13 ['storeAI', 'r10', 'rfp', 0]
+count	instruction
+    5	loadAI
+    3	storeAI
+    2	loadI
+    1	div
+    1	add
+    1	sub
+    1	mult
+
+instructions executed:   14
+register         read:   19 write:   25
+memory           read:    5 write:    3
+
+  register    value
+        r0       10
+        r1        2
+       r10       50
+        r2       10
+        r3        2
+        r4       10
+        r5        2
+        r6        5
+        r7        7
+        r8        2
+        r9        5
+      rbss        0
+       rfp     1024
+       rpc       13
+       rsp     1024
+
+    memory    value
+00001024       50
+00001028        2
+>> Execução finalizada.
+
+---------------------------------------------------
+[8] Testando: 1_7_teste_1_7_sucesso_rel_log_int.txt
+---------------------------------------------------
+[1/2] Compilando ../testes/etapa5/teste_sucesso/1_7_teste_1_7_sucesso_rel_log_int.txt...
+[2/2] Simulando execução...
+---------------------------------------------------
+0 ['loadI', 10, 'r0']
+1 ['storeAI', 'r0', 'rfp', 0]
+2 ['loadAI', 'rfp', 0, 'r1']
+3 ['loadI', 100, 'r2']
+4 ['cmp_LT', 'r1', 'r2', 'r3']
+5 ['loadAI', 'rfp', 0, 'r4']
+6 ['loadI', 5, 'r5']
+7 ['cmp_GT', 'r4', 'r5', 'r6']
+8 ['and', 'r3', 'r6', 'r7']
+9 ['loadAI', 'rfp', 0, 'r8']
+10 ['loadI', 10, 'r9']
+11 ['cmp_EQ', 'r8', 'r9', 'r10']
+12 ['loadAI', 'rfp', 0, 'r11']
+13 ['loadI', 11, 'r12']
+14 ['cmp_NE', 'r11', 'r12', 'r13']
+15 ['and', 'r10', 'r13', 'r14']
+16 ['or', 'r7', 'r14', 'r15']
+17 ['cbr', 'r15', 18, 22]
+18 ['nop']
+19 ['loadI', 1, 'r16']
+20 ['storeAI', 'r16', 'rfp', 0]
+21 ['jumpI', 25]
+25 ['nop']
+count	instruction
+    6	loadI
+    4	loadAI
+    2	storeAI
+    2	and
+    2	nop
+    1	cmp_LT
+    1	cmp_GT
+    1	cmp_EQ
+    1	cmp_NE
+    1	or
+    1	cbr
+    1	jumpI
+
+instructions executed:   23
+register         read:   23 write:   40
+memory           read:    4 write:    2
+
+  register    value
+        r0       10
+        r1       10
+       r10        1
+       r11       10
+       r12       11
+       r13        1
+       r14        1
+       r15        1
+       r16        1
+        r2      100
+        r3        1
+        r4       10
+        r5        5
+        r6        1
+        r7        1
+        r8       10
+        r9       10
+      rbss        0
+       rfp     1024
+       rpc       25
+       rsp     1024
+
+    memory    value
+00001024        1
+>> Execução finalizada.
+
+---------------------------------------------------
+[9] Testando: 1_8_grupo_simplesnaovazio.txt
+---------------------------------------------------
+[1/2] Compilando ../testes/etapa5/teste_sucesso/1_8_grupo_simplesnaovazio.txt...
+[2/2] Simulando execução...
+---------------------------------------------------
+count	instruction
+
+instructions executed:    0
+register         read:    0 write:    0
+memory           read:    0 write:    0
+
+  register    value
+      rbss        0
+       rfp     1024
+       rpc        0
+       rsp     1024
+
+    memory    value
+>> Execução finalizada.
+
+---------------------------------------------------
+[10] Testando: 1_9_grupo_teste_completo.txt
+---------------------------------------------------
+[1/2] Compilando ../testes/etapa5/teste_sucesso/1_9_grupo_teste_completo.txt...
+[2/2] Simulando execução...
+---------------------------------------------------
+0 ['loadI', 3, 'r0']
+1 ['halt']
+count	instruction
+    1	loadI
+    1	halt
+
+instructions executed:    2
+register         read:    0 write:    3
+memory           read:    0 write:    0
+
+  register    value
+        r0        3
+      rbss        0
+       rfp     1024
+       rpc        1
+       rsp     1024
+
+    memory    value
+>> Execução finalizada.
+
+=========================================
+ FIM: 10 testes executados.
+=========================================

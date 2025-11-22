@@ -1,0 +1,7 @@
+f -> inteiro := [ ],
+main -> inteiro :=
+[
+    var x := inteiro
+    x := f + 5 
+]
+;

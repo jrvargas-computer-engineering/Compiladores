@@ -1,0 +1,85 @@
+=========================================
+ INICIANDO BATERIA DE TESTES (ETAPA 5) 
+=========================================
+
+---------------------------------------------------
+[1] Testando: teste_completo.txt
+---------------------------------------------------
+[1/2] Compilando ../testes/etapa5/teste/teste_completo.txt...
+[2/2] Simulando execução...
+---------------------------------------------------
+0 ['loadI', 3, 'r0']
+1 ['halt']
+count	instruction
+    1	loadI
+    1	halt
+
+instructions executed:    2
+register         read:    0 write:    3
+memory           read:    0 write:    0
+
+  register    value
+        r0        3
+      rbss        0
+       rfp     1024
+       rpc        1
+       rsp     1024
+
+    memory    value
+>> Execução finalizada.
+
+---------------------------------------------------
+[2] Testando: teste_completo1.txt
+---------------------------------------------------
+[1/2] Compilando ../testes/etapa5/teste/teste_completo1.txt...
+[2/2] Simulando execução...
+---------------------------------------------------
+0 ['loadI', 3, 'r0']
+1 ['halt']
+count	instruction
+    1	loadI
+    1	halt
+
+instructions executed:    2
+register         read:    0 write:    3
+memory           read:    0 write:    0
+
+  register    value
+        r0        3
+      rbss        0
+       rfp     1024
+       rpc        1
+       rsp     1024
+
+    memory    value
+>> Execução finalizada.
+
+---------------------------------------------------
+[3] Testando: teste_final_etapa_3.txt
+---------------------------------------------------
+[1/2] Compilando ../testes/etapa5/teste/teste_final_etapa_3.txt...
+[2/2] Simulando execução...
+---------------------------------------------------
+0 ['loadI', 3, 'r0']
+1 ['halt']
+count	instruction
+    1	loadI
+    1	halt
+
+instructions executed:    2
+register         read:    0 write:    3
+memory           read:    0 write:    0
+
+  register    value
+        r0        3
+      rbss        0
+       rfp     1024
+       rpc        1
+       rsp     1024
+
+    memory    value
+>> Execução finalizada.
+
+=========================================
+ FIM: 3 testes executados.
+=========================================

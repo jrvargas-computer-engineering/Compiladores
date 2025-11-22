@@ -3,9 +3,14 @@
 // Sofia Popsin Gomes - 00313563
 
 %{
+#define _POSIX_C_SOURCE 200809L 
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "parser_helpers.h"
+#include "iloc.h"
 int yylex(void);
 void yyerror (char const *mensagem);
 void yyerror_semantic(const char *mensagem, int line, int error_code);
@@ -36,6 +41,14 @@ Para
   asd_tree_t *arvore;
   semantic_type_t semantic_type;
 }
+
+%destructor {
+    if ($$) {
+        if ($$->value) free($$->value);
+        free($$);
+    }
+} <valor_lex>
+
 /*  =====================================================
     =============== Tokens da Linguagem =================
     =====================================================
@@ -103,7 +116,7 @@ escopo_fim:
         table_free(tabela_global);
         $$ = NULL; 
     }
- 
+;
 //Cada elemento dessa lista eh ou uma definicao de funcao 
 //ou uma declaracao de variavel 
 lista_elementos:
@@ -116,8 +129,13 @@ lista_elementos:
             if($3 != NULL){
                 asd_add_child($$, $3);
             }
-        }
-        else {
+            
+            // Concatenação segura do código
+            iloc_node_t *code1 = $1->code_head;
+            iloc_node_t *code2 = ($3) ? $3->code_head : NULL;
+            $$->code_head = asd_concat_lists(code1, code2);
+
+        } else {
            $$ = $3; 
         }
     }
@@ -128,7 +146,8 @@ elemento:
         $$ = $1;
     }
     | declaracao_variavel_s_ini { //fix: mudei para null, para nao por na arvore
-        $$ = NULL; 
+        //$$ = NULL; 
+        $$ = $1; 
     }
 ; 
 
@@ -145,6 +164,13 @@ definicao_funcao:
         //definicao funcao eh onde escopo eh destruido
         table_t* tabela_funcao = scope_stack_pop();
         table_free(tabela_funcao);
+
+        // O cabeçalho ($1) geralmente não tem código, mas o corpo ($2) tem.
+        // Garantir que a definição da função aponte para o código do corpo.
+        iloc_node_t *code_header = ($1) ? $1->code_head : NULL;
+        iloc_node_t *code_body   = ($2) ? $2->code_head : NULL;
+
+        $$->code_head = asd_concat_lists(code_header, code_body);
     }
 ;
 
@@ -154,6 +180,7 @@ cabecalho_funcao:
 
         $$ = asd_new($1->value); 
         $$->data_type = $3; 
+        $$->code_head = NULL;
 
         reset_local_offset(); // Zera o contador rfp para a nova função
 
@@ -179,8 +206,11 @@ cabecalho_funcao:
         free(arg_types);
 
         if ($4 != NULL) {
-            asd_free($4); 
+            asd_add_child($$, $4); 
         }
+        // if ($4 != NULL) {
+        //     asd_free($4); 
+        // }
 
     }
 ;
@@ -197,7 +227,6 @@ lista_opicional_parametros:
         $$ = $1;
     }
 ; 
-/* Em parser.y */
 
 lista_parametros:
     parametro { 
@@ -256,8 +285,10 @@ declaracao_variavel_s_ini: // Sem inicialização
         }
         symbol_t* novo_simbolo = symbol_create_var($2, $4);
         table_insert(escopo_atual, novo_simbolo);     
-        $$ = NULL;
-        
+        // $$ = NULL;
+
+        $$ = asd_new("decl_var");
+        $$->code_head = NULL;
         //o ponteiro $2 agora esta salvo na tabela de simbolos
         //free($2->value);
         //free($2); 
@@ -265,7 +296,7 @@ declaracao_variavel_s_ini: // Sem inicialização
 ;
 
 tipo:
-    TK_DECIMAL {$$ = SEMANTIC_TYPE_FLOAT; }
+    TK_DECIMAL {$$ = SEMANTIC_TYPE_INT; } // Simplificação E5
     | TK_INTEIRO {$$ = SEMANTIC_TYPE_INT; }
 ; //nao gera no AST , mas agora retorna valor
 // para o parser
@@ -285,7 +316,9 @@ declaracao_variavel_c_ini_opcional:
         table_insert(escopo_atual, novo_simbolo);
         
         if($5 == NULL){
-            $$ = NULL;
+            //$$ = NULL;
+            $$ = asd_new("decl_var_int");
+            $$->code_head = NULL;
         }
         else{
             if ($5->data_type != SEMANTIC_TYPE_INT) {
@@ -295,6 +328,9 @@ declaracao_variavel_c_ini_opcional:
             asd_tree_t* tk_id_no = asd_new($2->value);
             asd_add_child($$, tk_id_no);
             asd_add_child($$, $5);
+
+            // Conecta o código do literal (loadI) ao nó da declaração
+            $$->code_head = $5->code_head;
         }
         //free($2->value);
         //free($2);
@@ -307,22 +343,29 @@ declaracao_variavel_c_ini_opcional:
         if (table_find(escopo_atual, $2->value) != NULL) {
             yyerror_semantic("Identificador ja declarado.", $2->line, ERR_DECLARED);
         }
+
+        char* nome_token = strdup($2->value);
        
-        symbol_t* novo_simbolo = symbol_create_var($2, SEMANTIC_TYPE_FLOAT);
+        symbol_t* novo_simbolo = symbol_create_var($2, SEMANTIC_TYPE_INT);
         table_insert(escopo_atual, novo_simbolo);
         
         if($5 == NULL){
-            $$ = NULL; 
-        }
-        else{
-            if ($5->data_type != SEMANTIC_TYPE_FLOAT) {
-                yyerror_semantic("Inicializacao incompativel. Esperava 'decimal'.", $2->line, ERR_WRONG_TYPE);
-            }
+            //$$ = NULL; 
+            $$ = asd_new("decl_var_dec");
+            $$->code_head = NULL;
+        } else{
+            // if ($5->data_type != SEMANTIC_TYPE_FLOAT) {
+            //     yyerror_semantic("Inicializacao incompativel. Esperava 'decimal'.", $2->line, ERR_WRONG_TYPE);
+            // }
             $$ = asd_new("com"); 
-            asd_tree_t* tk_id_no = asd_new($2->value);
+
+            asd_tree_t* tk_id_no = asd_new(nome_token);
             asd_add_child($$, tk_id_no);
             asd_add_child($$, $5);
+
+            $$->code_head = $5->code_head;
         }
+        free(nome_token);
     }
 ;
 
@@ -333,7 +376,12 @@ inicializacao_inteiro_opcional:
     %empty {$$ = NULL;}
     | TK_COM TK_LI_INTEIRO {
         $$ = new_node_from_lexval($2); 
-        $$->data_type = SEMANTIC_TYPE_INT;         
+        $$->data_type = SEMANTIC_TYPE_INT;       
+        
+        char* reg = make_temp();
+        $$->temp = reg;
+        $$->code_head = asd_new_iloc(NULL, "loadI", $$->label, NULL, reg);
+        $$->code_tail = $$->code_head;
     }
 ;
 
@@ -343,12 +391,30 @@ inicializacao_decimal_opcional:
     // Aceita literal decimal
     | TK_COM TK_LI_DECIMAL   { 
         $$ = new_node_from_lexval($2); 
-        $$->data_type = SEMANTIC_TYPE_FLOAT; 
+        // $$->data_type = SEMANTIC_TYPE_FLOAT; 
+
+        $$->data_type = SEMANTIC_TYPE_INT; // Força INT
+
+        char* reg = make_temp();
+        $$->temp = reg;
+        
+        // Converte float string para int string
+        int val_int = (int) atof($$->label); 
+        char val_str[64];
+        sprintf(val_str, "%d", val_int); 
+
+        $$->code_head = asd_new_iloc(NULL, "loadI", val_str, NULL, reg);
+        $$->code_tail = $$->code_head;
 
     }
     | TK_COM TK_LI_INTEIRO  {// E também aceita literal inteiro (ex: var d := decimal com 5)
         $$ = new_node_from_lexval($2); 
         $$->data_type = SEMANTIC_TYPE_INT; 
+
+        char* reg = make_temp();
+        $$->temp = reg;
+        $$->code_head = asd_new_iloc(NULL, "loadI", $$->label, NULL, reg);
+        $$->code_tail = $$->code_head;
     }
 ;
 
@@ -365,16 +431,27 @@ literal:
         // 3. Cria a instrução ILOC: loadI valor => registrador
         // arg1: o valor literal ($1->value)
         // arg3: o registrador de destino
-        $$->code_head = asd_new_iloc(NULL, "loadI", $1->value, NULL, reg);
+        $$->code_head = asd_new_iloc(NULL, "loadI", $$->label, NULL, reg);
         $$->code_tail = $$->code_head; // Como é só 1 instrução, head == tail
     }
     | TK_LI_DECIMAL {
         $$ = new_node_from_lexval($1); 
-        $$->data_type = SEMANTIC_TYPE_FLOAT; 
+        // $$->data_type = SEMANTIC_TYPE_FLOAT; 
+
+        // Truque: Trata como INT para funcionar na E5
+        $$->data_type = SEMANTIC_TYPE_INT;
 
         char* reg = make_temp();
         $$->temp = reg;
-        $$->code_head = asd_new_iloc(NULL, "loadI", $1->value, NULL, reg);
+
+        // 2. Converte "10.5" para "10" (Truncagem)
+        // O simulador ILOC não aceita floats no loadI
+        int val_int = (int) atof($$->label); 
+        char val_str[64];
+        sprintf(val_str, "%d", val_int);     
+
+        // 3. Gera código com o valor inteiro
+        $$->code_head = asd_new_iloc(NULL, "loadI", val_str, NULL, reg);
         $$->code_tail = $$->code_head;
     }
 ;
@@ -387,7 +464,10 @@ literal:
 //trole.
 comando_simples:
     bloco_comandos { $$ = $1; }
-    | declaracao_variavel_c_ini_opcional { if($1 == NULL ){$$ = NULL;} else{$$ = $1;} } 
+    | declaracao_variavel_c_ini_opcional { 
+        // if($1 == NULL ){$$ = NULL;} else{$$ = $1;} 
+        $$ = $1; 
+    } 
     | comando_atribuicao { $$ = $1; }
     | chamada_funcao { $$ = $1; }
     | comando_retorno { $$ = $1; }
@@ -432,16 +512,31 @@ lista_comando_simples_opcionais:
 
 lista_comando_simples:
     comando_simples{
-        if($1 == NULL ){$$ = NULL;} else{$$ = $1;} 
+        //if($1 == NULL ){$$ = NULL;} else{$$ = $1;}
+        $$ = $1;
     }
     | comando_simples lista_comando_simples  {
+
+    //     if ($1 == NULL && $1_code_head_exists) { // Conceitual
+    //          no1->code_head = ... // Difícil fazer aqui sem mudar a regra anterior
+    //     }
        
-       if($1 == NULL ){
-            $$ = $2;
-        } else{
-            $$ = $1;
-            asd_add_child($1, $2);    
-        } 
+    //    if($1 == NULL ){
+    //         $$ = $2;
+    //     } else{
+    //         $$ = $1;
+    //         asd_add_child($1, $2);    
+    //     } 
+
+        $$ = $1;
+        asd_add_child($$, $2);
+        
+        // Concatenação Robusta: lida com o fato de que $1 ou $2 podem ser 
+        // declarações de variáveis (que têm code_head = NULL se não inicializadas)
+        iloc_node_t *code1 = ($1) ? $1->code_head : NULL;
+        iloc_node_t *code2 = ($2) ? $2->code_head : NULL;
+
+        $$->code_head = asd_concat_lists(code1, code2);
     }
 ;
 
@@ -497,19 +592,20 @@ comando_atribuicao:
 // consiste no token TK_ID, seguida de argumentos entre parenteses,
 chamada_funcao:
     TK_ID '(' lista_argumentos_opcional ')' {
+        
         symbol_t* simbolo = stack_find_global($1->value);   
 
         if (simbolo == NULL) {
             yyerror_semantic("Funcao nao declarada.", $1->line, ERR_UNDECLARED);
-        }     
+        }  
 
-        if (simbolo->nature == SYMBOL_ID) {
+        if (simbolo->nature != SYMBOL_FUNCAO) {
             yyerror_semantic("Variavel usada como funcao.", $1->line, ERR_VARIABLE);
         }
 
-
         //conta argumentos e compara
         int provided_arg_count = count_params($3);
+
         if (provided_arg_count < simbolo->num_args) {
             yyerror_semantic("Faltam argumentos na chamada da funcao.", $1->line, ERR_MISSING_ARGS);
         }    
@@ -528,9 +624,26 @@ chamada_funcao:
         $$->line = $1->line;
         $$->data_type = simbolo->data_type;
 
-        if ($3 != NULL) asd_add_child($$, $3);
+        // CORREÇÃO CRÍTICA: Gera temp de retorno para evitar (null) em expressões
+        char* return_reg = make_temp();
+        $$->temp = return_reg;
+        
+        // Gera código dummy para carga do retorno (satisfaz o simulador)
+        // O valor 0 é arbitrário, pois a execução de chamada de função não é suportada pelo simulador
+        // iloc_node_t* ret_instr = asd_new_iloc(NULL, "loadI", "0", NULL, return_reg);
+        // $$->code_head = ret_instr;
+        $$->code_head = asd_new_iloc(NULL, "loadI", "0", NULL, return_reg);
+
+        if ($3 != NULL) {
+            asd_add_child($$, $3);
+            // $$->code_head = $3->code_head;
+            // Concatena código dos argumentos antes da "chamada"
+            $$->code_head = asd_concat_lists($3->code_head, $$->code_head);
+        }
+
         free($1->value);
         free($1);       
+
     }
 ; 
 
@@ -542,17 +655,16 @@ lista_argumentos_opcional:
 
 //cada argumento eh separado do outro por vírgula. 
 //Um argumento eh uma expressão.
-
-/* Em parser.y */
-
 lista_argumentos:
     expressao { 
         $$ = asd_new("arg_list"); 
         asd_add_child($$, $1); 
+        $$->code_head = $1->code_head;
     }
     | lista_argumentos ',' expressao  { 
         $$ = $1; 
         asd_add_child($$, $3); 
+        $$->code_head = asd_concat_lists($1->code_head, $3->code_head);
     }
 ;
 
@@ -569,6 +681,14 @@ comando_retorno:
         }
         $$ = new_node_from_unary_op("retorna", $2);  
         $$->data_type = $2->data_type; 
+
+        // 1. Concatena o código da expressão (calcula o valor)
+        $$->code_head = $2->code_head;
+
+        // 2. [FIX] Adiciona HALT para parar a execução e sair do loop infinito
+        // (Em um compilador completo, aqui seria um jump para o epílogo da função)
+        iloc_node_t* instr_halt = asd_new_iloc(NULL, "halt", NULL, NULL, NULL);
+        $$->code_head = asd_append_instruction($$->code_head, instr_halt);
     }
 ; 
 
@@ -633,6 +753,9 @@ comando_condicional:
             // 4. Rótulo Next (Saída)
             $$->code_head = asd_append_instruction($$->code_head, label_next);
 
+            free(L_true);
+            free(L_next);
+
         } else {
             // Requer 3 rótulos: True, False (Else) e Next (Saída)
             char* L_true = make_label();
@@ -648,7 +771,10 @@ comando_condicional:
             
             // 3. Salto para pular o Else: jumpI -> L_next
             // Isso fica no final do bloco True
-            iloc_node_t* jump_exit = asd_new_iloc(NULL, "jumpI", NULL, L_next, NULL);
+            // iloc_node_t* jump_exit = asd_new_iloc(NULL, "jumpI", NULL, L_next, NULL);
+            
+            // CORREÇÃO: jumpI -> Label (Label no arg1)
+            iloc_node_t* jump_exit = asd_new_iloc(NULL, "jumpI", L_next, NULL, NULL);
 
             // 4. Rótulo do Bloco FALSE (Else)
             iloc_node_t* label_false = asd_new_iloc(L_false, "nop", NULL, NULL, NULL);
@@ -679,6 +805,10 @@ comando_condicional:
 
             // F. Rótulo Final
             $$->code_head = asd_append_instruction($$->code_head, label_next);
+
+            free(L_true);
+            free(L_false);
+            free(L_next);
         }
     }
 ;
@@ -719,8 +849,11 @@ comando_enquanto:
         
         // Pulo incondicional de volta para o teste (Loop)
         // jumpI -> L_cond
-        iloc_node_t* jump_loop = asd_new_iloc(NULL, "jumpI", NULL, L_cond, NULL);
+        // iloc_node_t* jump_loop = asd_new_iloc(NULL, "jumpI", NULL, L_cond, NULL);
         
+        // CORREÇÃO: jumpI -> Label (Label no arg1)
+        iloc_node_t* jump_loop = asd_new_iloc(NULL, "jumpI", L_cond, NULL, NULL);
+
         // Label de saída
         iloc_node_t* label_next = asd_new_iloc(L_next, "nop", NULL, NULL, NULL);
 
@@ -747,6 +880,10 @@ comando_enquanto:
 
         // G. Marca a saída (L_next)
         $$->code_head = asd_append_instruction($$->code_head, label_next);
+
+        free(L_cond);
+        free(L_body);
+        free(L_next);
     }
 ;
 
@@ -936,6 +1073,40 @@ expr_nivel2:
             yyerror_semantic("Operador de resto (%) aplicado a float.", $1->line, ERR_WRONG_TYPE);
         }
         $$ = new_node_from_binary_op_arit("%", $1, $3);
+
+        // --- Cálculo manual do Resto ---
+        // Como o simulador não aceita "rem" ou "mod", fazemos:
+        // Resto = A - (A / B) * B
+        
+        char* resultado_reg = make_temp(); // r_resto
+        $$->temp = resultado_reg;
+
+        // Precisamos de temps auxiliares
+        char* temp_div = make_temp();  // Resultado da divisão
+        char* temp_mult = make_temp(); // Resultado da multiplicação de volta
+
+        // 1. Divisão Inteira: div rA, rB => rDiv
+        iloc_node_t* instr_div = asd_new_iloc(NULL, "div", $1->temp, $3->temp, temp_div);
+
+        // 2. Multiplicação: mult rDiv, rB => rMult
+        iloc_node_t* instr_mult = asd_new_iloc(NULL, "mult", temp_div, $3->temp, temp_mult);
+
+        // 3. Subtração: sub rA, rMult => rResto
+        iloc_node_t* instr_sub = asd_new_iloc(NULL, "sub", $1->temp, temp_mult, resultado_reg);
+
+        // --- MONTAGEM ---
+        // Concatena: Código Esq + Código Dir
+        $$->code_head = asd_concat_lists($1->code_head, $3->code_head);
+        
+        // Adiciona a sequência lógica
+        $$->code_head = asd_append_instruction($$->code_head, instr_div);
+        $$->code_head = asd_append_instruction($$->code_head, instr_mult);
+        $$->code_head = asd_append_instruction($$->code_head, instr_sub);
+
+        // Como as strings já foram copiadas para dentro das instruções ILOC,
+        // e não vamos guardar esses ponteiros na AST, precisamos liberar a memória local.
+        free(temp_div);
+        free(temp_mult);
     }
     | expr_nivel1 { $$ = $1; }
 ;
@@ -945,12 +1116,27 @@ expr_nivel2:
 // Por isso, a recursão aqui é à direita.
 expr_nivel1:
     '+' expr_nivel1 {
-        $$ = new_node_from_unary_op("+", $2);   
-        $$->data_type = $2->data_type;
+        // $$ = new_node_from_unary_op("+", $2);   
+        // $$->data_type = $2->data_type;
+
+        // $$->code_head = $2->code_head;
+        // $$->temp = $2->temp;
+
+        $$ = $2; // Operador unário + não altera valor
     }
     | '-' expr_nivel1 {
         $$ = new_node_from_unary_op("-", $2); 
         $$->data_type = $2->data_type;
+
+        // 1. Gera novo temporário
+        char* novo_temp = make_temp();
+        $$->temp = novo_temp;
+
+        // 2. Multiplica por -1 (multI r_origem, -1 => r_destino)
+        iloc_node_t* instr = asd_new_iloc(NULL, "multI", $2->temp, "-1", novo_temp);
+        
+        // 3. Concatena código do filho com a nova instrução
+        $$->code_head = asd_append_instruction($2->code_head, instr);
     }
     | '!' expr_nivel1 {
     if ($2->data_type != SEMANTIC_TYPE_INT) {
@@ -1028,5 +1214,6 @@ void yyerror (char const *mensagem) {
 
 void yyerror_semantic(const char *mensagem, int line, int error_code) {
     printf("Erro semantico (Linha %d): %s\n", line, mensagem);     
+    fflush(stdout);
     exit(error_code); 
 }

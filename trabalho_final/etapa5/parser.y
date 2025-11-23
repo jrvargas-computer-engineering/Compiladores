@@ -297,7 +297,7 @@ declaracao_variavel_s_ini: // Sem inicialização
 ;
 
 tipo:
-    TK_DECIMAL {$$ = SEMANTIC_TYPE_INT; } // Simplificação E5
+    TK_DECIMAL {$$ = SEMANTIC_TYPE_FLOAT; } // Simplificação E5
     | TK_INTEIRO {$$ = SEMANTIC_TYPE_INT; }
 ; //nao gera no AST , mas agora retorna valor
 // para o parser
@@ -347,7 +347,7 @@ declaracao_variavel_c_ini_opcional:
 
         char* nome_token = strdup($2->value);
        
-        symbol_t* novo_simbolo = symbol_create_var($2, SEMANTIC_TYPE_INT);
+        symbol_t* novo_simbolo = symbol_create_var($2, SEMANTIC_TYPE_FLOAT);
         table_insert(escopo_atual, novo_simbolo);
         
         if($5 == NULL){
@@ -355,9 +355,9 @@ declaracao_variavel_c_ini_opcional:
             $$ = asd_new("decl_var_dec");
             $$->code_head = NULL;
         } else{
-            // if ($5->data_type != SEMANTIC_TYPE_FLOAT) {
-            //     yyerror_semantic("Inicializacao incompativel. Esperava 'decimal'.", $2->line, ERR_WRONG_TYPE);
-            // }
+            if ($5->data_type != SEMANTIC_TYPE_FLOAT) {
+                yyerror_semantic("Inicializacao incompativel. Esperava 'decimal'.", $2->line, ERR_WRONG_TYPE);
+            }
             $$ = asd_new("com"); 
 
             asd_tree_t* tk_id_no = asd_new(nome_token);
@@ -394,7 +394,7 @@ inicializacao_decimal_opcional:
         $$ = new_node_from_lexval($2); 
         // $$->data_type = SEMANTIC_TYPE_FLOAT; 
 
-        $$->data_type = SEMANTIC_TYPE_INT; // Força INT
+        $$->data_type = SEMANTIC_TYPE_FLOAT; 
 
         char* reg = make_temp();
         $$->temp = reg;
@@ -437,23 +437,20 @@ literal:
     }
     | TK_LI_DECIMAL {
         $$ = new_node_from_lexval($1); 
-        // $$->data_type = SEMANTIC_TYPE_FLOAT; 
+        $$->data_type = SEMANTIC_TYPE_FLOAT; 
 
-        // Truque: Trata como INT para funcionar na E5
-        $$->data_type = SEMANTIC_TYPE_INT;
+        // char* reg = make_temp();
+        // $$->temp = reg;
 
-        char* reg = make_temp();
-        $$->temp = reg;
+        // // 2. Converte "10.5" para "10" (Truncagem)
+        // // O simulador ILOC não aceita floats no loadI
+        // int val_int = (int) atof($$->label); 
+        // char val_str[64];
+        // sprintf(val_str, "%d", val_int);     
 
-        // 2. Converte "10.5" para "10" (Truncagem)
-        // O simulador ILOC não aceita floats no loadI
-        int val_int = (int) atof($$->label); 
-        char val_str[64];
-        sprintf(val_str, "%d", val_int);     
-
-        // 3. Gera código com o valor inteiro
-        $$->code_head = asd_new_iloc(NULL, "loadI", val_str, NULL, reg);
-        $$->code_tail = $$->code_head;
+        // // 3. Gera código com o valor inteiro
+        // $$->code_head = asd_new_iloc(NULL, "loadI", val_str, NULL, reg);
+        // $$->code_tail = $$->code_head;
     }
 ;
 // ==========  Comandos  ==========
@@ -707,6 +704,11 @@ construcoes_fluxo_controle:
 
 comando_condicional:
     TK_SE '(' expressao ')' bloco_comandos senao_opcional {
+        
+        // Verifica se a expressão de controle é inteira
+        if ($3->data_type != SEMANTIC_TYPE_INT) {
+            yyerror_semantic("A condicao do comando 'se' deve ser do tipo inteiro.", $3->line, ERR_WRONG_TYPE);
+        }
         // 1. Criação dos nós da Árvore (AST)
         $$ = new_node_from_binary_op("se", $3, $5);
         if ($6 != NULL) 
@@ -717,7 +719,6 @@ comando_condicional:
             semantic_type_t then_type = last_type($5);
             semantic_type_t else_type = last_type($6);
             if (then_type != else_type) {
-
                 yyerror_semantic("Tipos incompatíveis entre os blocos 'if' e 'else'.",
                                  $3->line, ERR_WRONG_TYPE);
             }
@@ -835,9 +836,9 @@ senao_opcional:
 
 comando_enquanto:
     TK_ENQUANTO '(' expressao ')' bloco_comandos {
-        //if ($3->data_type != SEMANTIC_TYPE_INT) {
-        //    yyerror_semantic("Expressao de teste do 'enquanto' deve ser do tipo inteiro.", $3->line, ERR_WRONG_TYPE);
-        //}
+        if ($3->data_type != SEMANTIC_TYPE_INT) {
+           yyerror_semantic("Expressao de teste do 'enquanto' deve ser do tipo inteiro.", $3->line, ERR_WRONG_TYPE);
+        }
 
         // 1. Criação do Nó AST
         $$ = new_node_from_binary_op("enquanto", $3, $5);

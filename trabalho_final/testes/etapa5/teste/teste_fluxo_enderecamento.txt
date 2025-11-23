@@ -1,0 +1,49 @@
+// Teste de Fluxo e Endereçamento
+// Objetivos:
+// 1. Verificar se variáveis GLOBAIS (rbss) e LOCAIS (rfp) não se misturam.
+// 2. Verificar se os rótulos do ENQUANTO e SE são gerados corretamente.
+
+var g_contador := inteiro,  // Global (offset 0 em rbss)
+var g_acumulador := inteiro, // Global (offset 4 em rbss)
+
+main -> inteiro :=
+[
+    var l_local := inteiro      // Local (offset 0 em rfp)
+    var l_temp := inteiro       // Local (offset 4 em rfp)
+
+    // Inicialização
+    g_contador := 0
+    g_acumulador := 100
+    l_local := 5
+
+    // TESTE DE FLUXO: Enquanto l_local > 0
+    enquanto (l_local > 0)
+    [
+        // TESTE DE CONDICIONAL DENTRO DE LOOP
+        // Se l_local for maior que 2, soma na global.
+        // Senão, subtrai da global.
+        se (l_local > 2)
+        [
+            g_acumulador := g_acumulador + 10
+        ]
+        senao
+        [
+            g_acumulador := g_acumulador - 5
+        ]
+
+        // Decrementa variável local e incrementa contador global
+        l_local := l_local - 1
+        g_contador := g_contador + 1
+    ]
+
+    // Retorna o valor final do acumulador global
+    // Esperado:
+    // Loop roda 5 vezes (l_local = 5, 4, 3, 2, 1)
+    // Iteração 1 (l=5): > 2 -> +10 (110)
+    // Iteração 2 (l=4): > 2 -> +10 (120)
+    // Iteração 3 (l=3): > 2 -> +10 (130)
+    // Iteração 4 (l=2): não > 2 -> -5 (125)
+    // Iteração 5 (l=1): não > 2 -> -5 (120)
+    // Final: 120
+    retorna g_acumulador := inteiro
+];

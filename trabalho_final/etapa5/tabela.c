@@ -1,3 +1,7 @@
+/* Grupo A - Alunos:
+ Juliana Rodrigres de Vargas- 00337553
+ Sofia Popsin Gomes - 00313563*/
+ 
 #define _POSIX_C_SOURCE 200809L
 #include <stdio.h>
 #include <stdlib.h>

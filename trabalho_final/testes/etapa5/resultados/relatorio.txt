@@ -1,0 +1,222 @@
+========================================
+Testando EXECUÇÃO (Simulador)
+========================================
+[0;32m[PASSOU][0m pass00
+[0;31m[FALHOU][0m pass01
+Diferença de ESTADO FINAL encontrada:
+4c4
+<        rpc        6
+---
+>        rpc        5
+[0;32m[PASSOU][0m pass02
+[0;32m[PASSOU][0m pass03
+[0;32m[PASSOU][0m pass04
+[0;32m[PASSOU][0m pass05
+[0;31m[FALHOU][0m pass06
+Diferença de ESTADO FINAL encontrada:
+12c12
+<        rpc       22
+---
+>        rpc       21
+[0;32m[PASSOU][0m pass07
+[0;32m[PASSOU][0m pass08
+[0;31m[FALHOU][0m pass09
+Diferença de ESTADO FINAL encontrada:
+26c26
+<        rpc       44
+---
+>        rpc       43
+[0;32m[PASSOU][0m pass10
+[0;32m[PASSOU][0m pass11
+[0;31m[FALHOU][0m pass12
+Diferença de ESTADO FINAL encontrada:
+1,6d0
+<       rbss        0
+<        rfp     1024
+<        rpc        0
+<        rsp     1024
+< 
+<     memory    value
+[0;31m[FALHOU][0m pass13
+Diferença de ESTADO FINAL encontrada:
+1,6d0
+<       rbss        0
+<        rfp     1024
+<        rpc        0
+<        rsp     1024
+< 
+<     memory    value
+[0;31m[FALHOU][0m pass14
+Diferença de ESTADO FINAL encontrada:
+1,7d0
+<         r0        0
+<       rbss        0
+<        rfp     1024
+<        rpc        0
+<        rsp     1024
+< 
+<     memory    value
+[0;31m[FALHOU][0m pass15
+Diferença de ESTADO FINAL encontrada:
+1,7d0
+<         r0        0
+<       rbss        0
+<        rfp     1024
+<        rpc        0
+<        rsp     1024
+< 
+<     memory    value
+[0;32m[PASSOU][0m pass16
+[0;32m[PASSOU][0m pass17
+[0;32m[PASSOU][0m pass18
+[0;31m[FALHOU][0m pass19
+Diferença de ESTADO FINAL encontrada:
+1,7d0
+<         r0        1
+<       rbss        0
+<        rfp     1024
+<        rpc        0
+<        rsp     1024
+< 
+<     memory    value
+[0;32m[PASSOU][0m pass20
+[0;32m[PASSOU][0m pass21
+[0;31m[FALHOU][0m pass22
+Diferença de ESTADO FINAL encontrada:
+1,7d0
+<         r0        2
+<       rbss        0
+<        rfp     1024
+<        rpc        0
+<        rsp     1024
+< 
+<     memory    value
+[0;32m[PASSOU][0m pass23
+[0;31m[FALHOU][0m pass24
+Diferença de ESTADO FINAL encontrada:
+1,10d0
+<         r0        0
+<         r1        1
+<         r2        1
+<       rbss        0
+<        rfp     1024
+<        rpc       10
+<        rsp     1024
+< 
+<     memory    value
+< 00001024        1
+[0;32m[PASSOU][0m pass25
+[0;32m[PASSOU][0m pass26
+[0;31m[FALHOU][0m pass27
+Diferença de ESTADO FINAL encontrada:
+1,13d0
+<         r0        7
+<         r1        0
+<         r2        1
+<         r3        1
+<         r4       -1
+<         r5        0
+<       rbss        0
+<        rfp     1024
+<        rpc       12
+<        rsp     1024
+< 
+<     memory    value
+< 00000000        0
+[0;32m[PASSOU][0m pass28
+[0;31m[FALHOU][0m pass29
+Diferença de ESTADO FINAL encontrada:
+1,14d0
+<         r0        0
+<         r1        1
+<         r2        0
+<         r3        1
+<         r4        1
+<         r5       -1
+<         r6        0
+<       rbss        0
+<        rfp     1024
+<        rpc       13
+<        rsp     1024
+< 
+<     memory    value
+< 00001024        0
+[0;32m[PASSOU][0m pass30
+[0;31m[FALHOU][0m pass31
+Diferença de ESTADO FINAL encontrada:
+1,7d0
+<         r0        5
+<       rbss        0
+<        rfp     1024
+<        rpc        0
+<        rsp     1024
+< 
+<     memory    value
+[0;32m[PASSOU][0m pass32
+[0;32m[PASSOU][0m pass33
+[0;32m[PASSOU][0m pass34
+[0;32m[PASSOU][0m pass35
+[0;32m[PASSOU][0m pass36
+[0;32m[PASSOU][0m pass37
+[0;32m[PASSOU][0m pass38
+[0;32m[PASSOU][0m pass39
+[0;32m[PASSOU][0m pass40
+[0;32m[PASSOU][0m pass41
+[0;32m[PASSOU][0m pass42
+[0;32m[PASSOU][0m pass43
+[0;32m[PASSOU][0m pass44
+[0;32m[PASSOU][0m pass45
+[0;32m[PASSOU][0m pass46
+[0;32m[PASSOU][0m pass47
+[0;32m[PASSOU][0m pass48
+[0;32m[PASSOU][0m pass49
+[0;32m[PASSOU][0m pass50
+[0;32m[PASSOU][0m pass51
+[0;32m[PASSOU][0m pass52
+[0;32m[PASSOU][0m pass53
+[0;32m[PASSOU][0m pass54
+[0;32m[PASSOU][0m pass55
+[0;32m[PASSOU][0m pass56
+[0;32m[PASSOU][0m pass57
+[0;32m[PASSOU][0m pass58
+[0;32m[PASSOU][0m pass59
+[0;32m[PASSOU][0m pass60
+[0;32m[PASSOU][0m pass61
+[0;32m[PASSOU][0m pass62
+[0;32m[PASSOU][0m pass63
+[0;32m[PASSOU][0m pass64
+[0;32m[PASSOU][0m pass65
+[0;32m[PASSOU][0m pass66
+[0;32m[PASSOU][0m pass67
+[0;32m[PASSOU][0m pass68
+[0;32m[PASSOU][0m pass69
+[0;32m[PASSOU][0m pass70
+[0;32m[PASSOU][0m pass71
+[0;32m[PASSOU][0m pass72
+[0;32m[PASSOU][0m pass73
+[0;32m[PASSOU][0m pass74
+[0;32m[PASSOU][0m pass75
+[0;32m[PASSOU][0m pass76
+[0;32m[PASSOU][0m pass77
+[0;32m[PASSOU][0m pass78
+[0;32m[PASSOU][0m pass79
+[0;32m[PASSOU][0m pass80
+[0;32m[PASSOU][0m pass81
+[0;32m[PASSOU][0m pass82
+[0;32m[PASSOU][0m pass83
+[0;32m[PASSOU][0m pass84
+[0;32m[PASSOU][0m pass85
+[0;32m[PASSOU][0m pass86
+[0;32m[PASSOU][0m pass87
+[0;32m[PASSOU][0m pass88
+[0;32m[PASSOU][0m pass89
+[0;32m[PASSOU][0m pass90
+[0;32m[PASSOU][0m pass91
+[0;32m[PASSOU][0m pass92
+[0;32m[PASSOU][0m pass93
+[0;32m[PASSOU][0m pass94
+[0;32m[PASSOU][0m pass95
+[0;32m[PASSOU][0m pass96
+[0;32m[PASSOU][0m pass97
+[0;32m[PASSOU][0m pass98
+[0;32m[PASSOU][0m pass99

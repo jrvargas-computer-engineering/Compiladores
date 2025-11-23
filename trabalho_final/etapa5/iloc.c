@@ -64,6 +64,10 @@ iloc_node_t* asd_concat_lists(iloc_node_t *list1, iloc_node_t *list2) {
  * Na prática, é um caso especial de concatenação.
  */
 iloc_node_t* asd_append_instruction(iloc_node_t *list, iloc_node_t *instruction) {
+    if (instruction != NULL) {
+        // Segurança: Garante que a instrução a ser adicionada é o fim da lista
+        instruction->next = NULL; 
+    }
     return asd_concat_lists(list, instruction);
 }
 

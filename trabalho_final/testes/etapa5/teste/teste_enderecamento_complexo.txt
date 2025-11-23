@@ -1,0 +1,39 @@
+// Teste de Endereçamento Complexo (Offsets e Escopos)
+// Verifica se variáveis declaradas em sequência recebem offsets diferentes (0, 4, 8...)
+// e se globais (rbss) não colidem com locais (rfp).
+
+var g_a := inteiro,  // Global Offset 0
+var g_b := inteiro,  // Global Offset 4
+var g_c := inteiro,  // Global Offset 8
+
+main -> inteiro :=
+[
+    var l_x := inteiro  // Local Offset 0
+    var l_y := inteiro  // Local Offset 4
+    var l_z := inteiro  // Local Offset 8
+
+    // 1. Inicializa Globais com valores base 100
+    g_a := 100
+    g_b := 200
+    g_c := 300
+
+    // 2. Inicializa Locais com valores base 1
+    l_x := 1
+    l_y := 2
+    l_z := 3
+
+    // 3. Realiza uma "mistura" para garantir que ninguém sobrescreveu ninguém.
+    // Se os offsets estiverem errados (ex: tudo 0), o resultado final dará errado.
+    
+    // g_a (100) + l_x (1) = 101
+    g_a := g_a + l_x
+    
+    // g_b (200) + l_y (2) = 202
+    g_b := g_b + l_y
+
+    // g_c (300) + l_z (3) = 303
+    g_c := g_c + l_z
+
+    // Retorna a soma de tudo: 101 + 202 + 303 = 606
+    retorna g_a + g_b + g_c := inteiro
+];

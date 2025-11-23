@@ -32,7 +32,8 @@ symbol_t* funcao_global = NULL;
 Para
  simplificar esse procedimento, os nós da AST devem
  ser anotados com um tipo de dado definido de acordo
- com as regras de inferência de tipos. Um nó da AST
+ com as regras de inferência de tipos. 
+ Um nó da AST
  deve ter portanto um novo campo que registra o seu
  tipo de dado. 
 */
@@ -476,7 +477,8 @@ comando_simples:
 
 //Definido entre colchetes, e
 //consiste em uma sequência, possivelmente vazia,
-//de comandos simples. Um bloco de comandos
+//de comandos simples. 
+// Um bloco de comandos
 //é considerado como um comando único simples
 //e pode ser utilizado em qualquer construção que
 //aceite um comando simples.
@@ -628,11 +630,16 @@ chamada_funcao:
         char* return_reg = make_temp();
         $$->temp = return_reg;
         
-        // Gera código dummy para carga do retorno (satisfaz o simulador)
-        // O valor 0 é arbitrário, pois a execução de chamada de função não é suportada pelo simulador
-        // iloc_node_t* ret_instr = asd_new_iloc(NULL, "loadI", "0", NULL, return_reg);
-        // $$->code_head = ret_instr;
-        $$->code_head = asd_new_iloc(NULL, "loadI", "0", NULL, return_reg);
+        /* CORREÇÃO: Gerar instrução CALL real e remover o loadI 0 */
+        
+        // Antes: 
+        // $$->code_head = asd_new_iloc(NULL, "loadI", "0", NULL, return_reg);
+
+        /// O jumpI salta incondicionalmente para o rótulo.
+        // Como o simulador não gerencia retorno automaticamente, ignoramos o registrador de retorno por enquanto.
+        // iloc_node_t* call_instr = asd_new_iloc(NULL, "jumpI", $1->value, NULL, NULL);
+        
+        $$->code_head = NULL;
 
         if ($3 != NULL) {
             asd_add_child($$, $3);
@@ -687,8 +694,8 @@ comando_retorno:
 
         // 2. [FIX] Adiciona HALT para parar a execução e sair do loop infinito
         // (Em um compilador completo, aqui seria um jump para o epílogo da função)
-        iloc_node_t* instr_halt = asd_new_iloc(NULL, "halt", NULL, NULL, NULL);
-        $$->code_head = asd_append_instruction($$->code_head, instr_halt);
+        // iloc_node_t* instr_halt = asd_new_iloc(NULL, "halt", NULL, NULL, NULL);
+        // $$->code_head = asd_append_instruction($$->code_head, instr_halt);
     }
 ; 
 
@@ -725,19 +732,23 @@ comando_condicional:
             
             // A. Gerar Rótulos
             char* L_true = make_label();
-            char* L_next = make_label();
+            char* L_false = make_label(); // Rótulo intermediário (L1 na sua saida)
+            char* L_next = make_label();  // Rótulo final (L2 na sua saida)
 
-            // B. Gerar cbr r_cond -> L_true, L_next
-            // Se verdadeiro, entra no bloco. Se falso, pula para o final (next).
-            iloc_node_t* cbr = asd_new_iloc(NULL, "cbr", $3->temp, L_true, L_next);
+            // B. Gerar cbr r_cond -> L_true, L_false
+            // Nota: Se falso, vai para L_false (que é vazio e cai para L_next)
+            iloc_node_t* cbr = asd_new_iloc(NULL, "cbr", $3->temp, L_true, L_false);
 
-            // C. Definir label L_true (Início do bloco)
+            // C. Definir label L_true (Início do bloco True)
             iloc_node_t* label_true = asd_new_iloc(L_true, "nop", NULL, NULL, NULL);
 
-            // D. Definir label L_next (Fim do IF)
+            // D. Definir label L_false (Fim do True / Início do "Else vazio")
+            iloc_node_t* label_false = asd_new_iloc(L_false, "nop", NULL, NULL, NULL);
+
+            // E. Definir label L_next (Saída final)
             iloc_node_t* label_next = asd_new_iloc(L_next, "nop", NULL, NULL, NULL);
 
-            // E. Montagem (Concatenação)
+            // F. Montagem (Concatenação)
             // 1. Código da Condição
             $$->code_head = $3->code_head;
             
@@ -750,12 +761,15 @@ comando_condicional:
                 $$->code_head = asd_concat_lists($$->code_head, $5->code_head);
             }
 
-            // 4. Rótulo Next (Saída)
+            // 4. Rótulo False (L1) - O fluxo do True cai aqui naturalmente
+            $$->code_head = asd_append_instruction($$->code_head, label_false);
+
+            // 5. Rótulo Next (L2) - O fluxo do False cai aqui naturalmente
             $$->code_head = asd_append_instruction($$->code_head, label_next);
 
             free(L_true);
+            free(L_false);
             free(L_next);
-
         } else {
             // Requer 3 rótulos: True, False (Else) e Next (Saída)
             char* L_true = make_label();
@@ -1132,9 +1146,10 @@ expr_nivel1:
         char* novo_temp = make_temp();
         $$->temp = novo_temp;
 
-        // 2. Multiplica por -1 (multI r_origem, -1 => r_destino)
-        iloc_node_t* instr = asd_new_iloc(NULL, "multI", $2->temp, "-1", novo_temp);
-        
+        /* Usar rsubI para fazer (0 - reg) */
+        // rsubI r, 0 => r (Realiza: 0 - r)
+        iloc_node_t* instr = asd_new_iloc(NULL, "rsubI", $2->temp, "0", novo_temp);
+
         // 3. Concatena código do filho com a nova instrução
         $$->code_head = asd_append_instruction($2->code_head, instr);
     }

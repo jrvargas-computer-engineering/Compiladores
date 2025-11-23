@@ -1,7 +1,10 @@
+/* Grupo A - Alunos:
+ Juliana Rodrigres de Vargas- 00337553
+ Sofia Popsin Gomes - 00313563*/
+ 
 /* * tabela.h
  * Arquivo de cabeçalho para a Tabela de Símbolos e Pilha de Escopos.
  */
-
 #ifndef TABELA_H
 #define TABELA_H
 #include "types.h"

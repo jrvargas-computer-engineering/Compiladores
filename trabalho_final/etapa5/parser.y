@@ -196,7 +196,9 @@ cabecalho_funcao:
         table_t* escopo_pai = scope_stack_peek();
         
         if (table_find(escopo_pai, $1->value) != NULL) {
-            yyerror_semantic("Funcao ja declarada.", $1->line, ERR_DECLARED);
+            char msg[200];
+            sprintf(msg, "Funcao '%s' ja declarada.", $1->value);
+            yyerror_semantic(msg, $1->line, ERR_DECLARED);
         }
         symbol_t* func_symbol = symbol_create_func($1, $3, num_args, arg_types); 
         table_insert(escopo_pai, func_symbol); 
@@ -282,7 +284,9 @@ declaracao_variavel_s_ini: // Sem inicialização
 
         //verifica se simbolo esta declarado neste escopo 
         if (table_find(escopo_atual, $2->value) != NULL) {
-            yyerror_semantic("Identificador ja declarado.", $2->line, ERR_DECLARED);
+            char msg[200];
+            sprintf(msg, "Identificador '%s' ja declarado no escopo atual.", $2->value);
+            yyerror_semantic(msg, $2->line, ERR_DECLARED);
         }
         symbol_t* novo_simbolo = symbol_create_var($2, $4);
         table_insert(escopo_atual, novo_simbolo);     
@@ -310,7 +314,9 @@ declaracao_variavel_c_ini_opcional:
         table_t* escopo_atual = scope_stack_peek();
         //verifica se simbolo esta declarado neste escopo 
         if (table_find(escopo_atual, $2->value) != NULL) {
-            yyerror_semantic("Identificador ja declarado.", $2->line, ERR_DECLARED);
+            char msg[200];
+            sprintf(msg, "Identificador '%s' ja declarado.", $2->value);
+            yyerror_semantic(msg, $2->line, ERR_DECLARED);
         }
         
         symbol_t* novo_simbolo = symbol_create_var($2, SEMANTIC_TYPE_INT);
@@ -322,8 +328,10 @@ declaracao_variavel_c_ini_opcional:
             $$->code_head = NULL;
         }
         else{
-            if ($5->data_type != SEMANTIC_TYPE_INT) {
-                yyerror_semantic("Inicializacao incompativel. Esperava 'inteiro'.", $2->line, ERR_WRONG_TYPE);
+            if ($5->data_type != SEMANTIC_TYPE_INT) { // ou FLOAT no outro caso
+                char msg[200];
+                sprintf(msg, "Inicializacao incompativel para '%s'. Esperava o tipo correto.", $2->value);
+                yyerror_semantic(msg, $2->line, ERR_WRONG_TYPE);
             }
             $$ = asd_new("com"); 
             asd_tree_t* tk_id_no = asd_new($2->value);
@@ -342,7 +350,9 @@ declaracao_variavel_c_ini_opcional:
         
         //verifica se simbolo esta declarado neste escopo 
         if (table_find(escopo_atual, $2->value) != NULL) {
-            yyerror_semantic("Identificador ja declarado.", $2->line, ERR_DECLARED);
+            char msg[200];
+            sprintf(msg, "Identificador '%s' ja declarado.", $2->value);
+            yyerror_semantic(msg, $2->line, ERR_DECLARED);
         }
 
         char* nome_token = strdup($2->value);
@@ -356,8 +366,10 @@ declaracao_variavel_c_ini_opcional:
             $$->code_head = NULL;
         } else{
             if ($5->data_type != SEMANTIC_TYPE_FLOAT) {
-                yyerror_semantic("Inicializacao incompativel. Esperava 'decimal'.", $2->line, ERR_WRONG_TYPE);
-            }
+                char msg[200];
+                sprintf(msg, "Inicializacao incompativel para '%s'. Esperava o tipo correto.", $2->value);
+                yyerror_semantic(msg, $2->line, ERR_WRONG_TYPE);
+            }   
             $$ = asd_new("com"); 
 
             asd_tree_t* tk_id_no = asd_new(nome_token);
@@ -545,15 +557,20 @@ comando_atribuicao:
         // --- Buscas e Verificações Semânticas ---
         symbol_t* simbolo = stack_find_global($1->value);
         
+        char msg[200]; // Buffer para as mensagens
+
         if (simbolo == NULL) {
-            yyerror_semantic("Identificador nao declarado.", $1->line, ERR_UNDECLARED);
+            sprintf(msg, "Identificador '%s' nao declarado.", $1->value);
+            yyerror_semantic(msg, $1->line, ERR_UNDECLARED);
         }
         if (simbolo->nature == SYMBOL_FUNCAO) {
-            yyerror_semantic("Funcao usada como variavel em atribuicao.", $1->line, ERR_FUNCTION);
+            sprintf(msg, "Funcao '%s' usada incorretamente como variavel em atribuicao.", $1->value);
+            yyerror_semantic(msg, $1->line, ERR_FUNCTION);
         }
 
         if (simbolo->data_type != $3->data_type) {
-            yyerror_semantic("Atribuicao de tipo incompativel.", $1->line, ERR_WRONG_TYPE);
+            sprintf(msg, "Atribuicao de tipo incompativel para '%s'.", $1->value);
+            yyerror_semantic(msg, $1->line, ERR_WRONG_TYPE);
         }
 
         // --- Criação do Nó AST ---
@@ -594,26 +611,26 @@ chamada_funcao:
         
         symbol_t* simbolo = stack_find_global($1->value);   
 
+        char msg[200];
+
         if (simbolo == NULL) {
-            yyerror_semantic("Funcao nao declarada.", $1->line, ERR_UNDECLARED);
+            sprintf(msg, "Funcao '%s' nao declarada.", $1->value);
+            yyerror_semantic(msg, $1->line, ERR_UNDECLARED);
         }  
 
         if (simbolo->nature != SYMBOL_FUNCAO) {
-            yyerror_semantic("Variavel usada como funcao.", $1->line, ERR_VARIABLE);
+            sprintf(msg, "Variavel '%s' usada incorretamente como funcao.", $1->value);
+            yyerror_semantic(msg, $1->line, ERR_VARIABLE);
         }
 
-        //conta argumentos e compara
-        int provided_arg_count = count_params($3);
-
+        // ... verificações de argumentos
         if (provided_arg_count < simbolo->num_args) {
-            yyerror_semantic("Faltam argumentos na chamada da funcao.", $1->line, ERR_MISSING_ARGS);
+            sprintf(msg, "Faltam argumentos na chamada da funcao '%s'.", $1->value);
+            yyerror_semantic(msg, $1->line, ERR_MISSING_ARGS);
         }    
         if (provided_arg_count > simbolo->num_args) {
-            yyerror_semantic("Argumentos em excesso na chamada da funcao.", $1->line, ERR_EXCESS_ARGS);
-        }
-        //compara os tipos
-        if (simbolo->num_args > 0 && provided_arg_count == simbolo->num_args) {
-            check_argument_types(simbolo, $3);
+            sprintf(msg, "Argumentos em excesso na chamada da funcao '%s'.", $1->value);
+            yyerror_semantic(msg, $1->line, ERR_EXCESS_ARGS);
         }
         
         char label[256];
@@ -1180,11 +1197,15 @@ expr_nivel1:
 fator:
     TK_ID {
         symbol_t* simbolo = stack_find_global($1->value);
+        char msg[200];
+
         if (simbolo == NULL) {
-            yyerror_semantic("Identificador nao declarado.", $1->line, ERR_UNDECLARED);
+            sprintf(msg, "Identificador '%s' nao declarado.", $1->value);
+            yyerror_semantic(msg, $1->line, ERR_UNDECLARED);
         }
         if (simbolo->nature == SYMBOL_FUNCAO) {
-            yyerror_semantic("Funcao usada como variavel.", $1->line, ERR_FUNCTION);
+            sprintf(msg, "Funcao '%s' usada como variavel.", $1->value);
+            yyerror_semantic(msg, $1->line, ERR_FUNCTION);
         }
 
         // Cria nó da AST

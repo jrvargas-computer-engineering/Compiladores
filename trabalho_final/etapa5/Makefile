@@ -36,7 +36,7 @@ lex.yy.c: scanner.l parser.tab.h
 	flex scanner.l
 
 clean: 
-	rm -f $(TARGET) $(OBJ) .o lex.yy.c parser.tab.c parser.tab.h parser.output *.dot *.png *.tgz *.iloc
+	rm -f $(TARGET) $(OBJ) .o lex.yy.c parser.tab.c parser.tab.h parser.output *.dot *.png *.tgz *.iloc *.txt
 
 tgz: clean
 	tar cvzf $(TARGET).tgz --exclude=$(TARGET).tgz .

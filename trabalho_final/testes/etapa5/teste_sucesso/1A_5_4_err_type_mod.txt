@@ -1,0 +1,8 @@
+main -> inteiro :=
+[
+    var f := decimal
+    var i := inteiro
+    f := 5
+    i := 10 % f 
+]
+;

@@ -1,0 +1,13 @@
+mistura -> decimal com a := decimal, b := decimal, c := inteiro :=
+[
+    retorna (a * b) := decimal
+],
+
+principal -> inteiro :=
+[
+    var r := decimal
+    r := mistura(2, 3, 4)  
+    r := mistura(2, 3, 4) // erro: primeiro argumento deveria ser decimal
+    retorna 0 := inteiro
+];
+

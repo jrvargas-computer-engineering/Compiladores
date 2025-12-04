@@ -1,0 +1,287 @@
+=========================================
+ INICIANDO BATERIA DE TESTES (ETAPA 5) 
+=========================================
+
+---------------------------------------------------
+[1] Testando: teste_enderecamento_complexo.txt
+---------------------------------------------------
+[1/2] Compilando ../testes/etapa5/teste/teste_enderecamento_complexo.txt...
+[2/2] Simulando execução...
+---------------------------------------------------
+0 ['loadI', 100, 'r0']
+1 ['storeAI', 'r0', 'rbss', 0]
+2 ['loadI', 200, 'r1']
+3 ['storeAI', 'r1', 'rbss', 4]
+4 ['loadI', 300, 'r2']
+5 ['storeAI', 'r2', 'rbss', 8]
+6 ['loadI', 1, 'r3']
+7 ['storeAI', 'r3', 'rfp', 0]
+8 ['loadI', 2, 'r4']
+9 ['storeAI', 'r4', 'rfp', 4]
+10 ['loadI', 3, 'r5']
+11 ['storeAI', 'r5', 'rfp', 8]
+12 ['loadAI', 'rbss', 0, 'r6']
+13 ['loadAI', 'rfp', 0, 'r7']
+14 ['add', 'r6', 'r7', 'r8']
+15 ['storeAI', 'r8', 'rbss', 0]
+16 ['loadAI', 'rbss', 4, 'r9']
+17 ['loadAI', 'rfp', 4, 'r10']
+18 ['add', 'r9', 'r10', 'r11']
+19 ['storeAI', 'r11', 'rbss', 4]
+20 ['loadAI', 'rbss', 8, 'r12']
+21 ['loadAI', 'rfp', 8, 'r13']
+22 ['add', 'r12', 'r13', 'r14']
+23 ['storeAI', 'r14', 'rbss', 8]
+24 ['loadAI', 'rbss', 0, 'r15']
+25 ['loadAI', 'rbss', 4, 'r16']
+26 ['add', 'r15', 'r16', 'r17']
+27 ['loadAI', 'rbss', 8, 'r18']
+28 ['add', 'r17', 'r18', 'r19']
+29 ['halt']
+count	instruction
+    9	storeAI
+    9	loadAI
+    6	loadI
+    5	add
+    1	halt
+
+instructions executed:   30
+register         read:   37 write:   50
+memory           read:    9 write:    9
+
+  register    value
+        r0      100
+        r1      200
+       r10        2
+       r11      202
+       r12      300
+       r13        3
+       r14      303
+       r15      101
+       r16      202
+       r17      303
+       r18      303
+       r19      606
+        r2      300
+        r3        1
+        r4        2
+        r5        3
+        r6      100
+        r7        1
+        r8      101
+        r9      200
+      rbss        0
+       rfp     1024
+       rpc       29
+       rsp     1024
+
+    memory    value
+00000000      101
+00000004      202
+00000008      303
+00001024        1
+00001028        2
+00001032        3
+>> Execução finalizada.
+
+---------------------------------------------------
+[2] Testando: teste_fluxo_enderecamento.txt
+---------------------------------------------------
+[1/2] Compilando ../testes/etapa5/teste/teste_fluxo_enderecamento.txt...
+[2/2] Simulando execução...
+---------------------------------------------------
+0 ['loadI', 0, 'r0']
+1 ['storeAI', 'r0', 'rbss', 0]
+2 ['loadI', 100, 'r1']
+3 ['storeAI', 'r1', 'rbss', 4]
+4 ['loadI', 5, 'r2']
+5 ['storeAI', 'r2', 'rfp', 0]
+6 ['nop']
+7 ['loadAI', 'rfp', 0, 'r3']
+8 ['loadI', 0, 'r4']
+9 ['cmp_GT', 'r3', 'r4', 'r5']
+10 ['cbr', 'r5', 11, 37]
+11 ['nop']
+12 ['loadAI', 'rfp', 0, 'r6']
+13 ['loadI', 2, 'r7']
+14 ['cmp_GT', 'r6', 'r7', 'r8']
+15 ['cbr', 'r8', 16, 22]
+16 ['nop']
+17 ['loadAI', 'rbss', 4, 'r9']
+18 ['loadI', 10, 'r10']
+19 ['add', 'r9', 'r10', 'r11']
+20 ['storeAI', 'r11', 'rbss', 4]
+21 ['jumpI', 27]
+27 ['nop']
+28 ['loadAI', 'rfp', 0, 'r15']
+29 ['loadI', 1, 'r16']
+30 ['sub', 'r15', 'r16', 'r17']
+31 ['storeAI', 'r17', 'rfp', 0]
+32 ['loadAI', 'rbss', 0, 'r18']
+33 ['loadI', 1, 'r19']
+34 ['add', 'r18', 'r19', 'r20']
+35 ['storeAI', 'r20', 'rbss', 0]
+36 ['jumpI', 6]
+6 ['nop']
+7 ['loadAI', 'rfp', 0, 'r3']
+8 ['loadI', 0, 'r4']
+9 ['cmp_GT', 'r3', 'r4', 'r5']
+10 ['cbr', 'r5', 11, 37]
+11 ['nop']
+12 ['loadAI', 'rfp', 0, 'r6']
+13 ['loadI', 2, 'r7']
+14 ['cmp_GT', 'r6', 'r7', 'r8']
+15 ['cbr', 'r8', 16, 22]
+16 ['nop']
+17 ['loadAI', 'rbss', 4, 'r9']
+18 ['loadI', 10, 'r10']
+19 ['add', 'r9', 'r10', 'r11']
+20 ['storeAI', 'r11', 'rbss', 4]
+21 ['jumpI', 27]
+27 ['nop']
+28 ['loadAI', 'rfp', 0, 'r15']
+29 ['loadI', 1, 'r16']
+30 ['sub', 'r15', 'r16', 'r17']
+31 ['storeAI', 'r17', 'rfp', 0]
+32 ['loadAI', 'rbss', 0, 'r18']
+33 ['loadI', 1, 'r19']
+34 ['add', 'r18', 'r19', 'r20']
+35 ['storeAI', 'r20', 'rbss', 0]
+36 ['jumpI', 6]
+6 ['nop']
+7 ['loadAI', 'rfp', 0, 'r3']
+8 ['loadI', 0, 'r4']
+9 ['cmp_GT', 'r3', 'r4', 'r5']
+10 ['cbr', 'r5', 11, 37]
+11 ['nop']
+12 ['loadAI', 'rfp', 0, 'r6']
+13 ['loadI', 2, 'r7']
+14 ['cmp_GT', 'r6', 'r7', 'r8']
+15 ['cbr', 'r8', 16, 22]
+16 ['nop']
+17 ['loadAI', 'rbss', 4, 'r9']
+18 ['loadI', 10, 'r10']
+19 ['add', 'r9', 'r10', 'r11']
+20 ['storeAI', 'r11', 'rbss', 4]
+21 ['jumpI', 27]
+27 ['nop']
+28 ['loadAI', 'rfp', 0, 'r15']
+29 ['loadI', 1, 'r16']
+30 ['sub', 'r15', 'r16', 'r17']
+31 ['storeAI', 'r17', 'rfp', 0]
+32 ['loadAI', 'rbss', 0, 'r18']
+33 ['loadI', 1, 'r19']
+34 ['add', 'r18', 'r19', 'r20']
+35 ['storeAI', 'r20', 'rbss', 0]
+36 ['jumpI', 6]
+6 ['nop']
+7 ['loadAI', 'rfp', 0, 'r3']
+8 ['loadI', 0, 'r4']
+9 ['cmp_GT', 'r3', 'r4', 'r5']
+10 ['cbr', 'r5', 11, 37]
+11 ['nop']
+12 ['loadAI', 'rfp', 0, 'r6']
+13 ['loadI', 2, 'r7']
+14 ['cmp_GT', 'r6', 'r7', 'r8']
+15 ['cbr', 'r8', 16, 22]
+22 ['nop']
+23 ['loadAI', 'rbss', 4, 'r12']
+24 ['loadI', 5, 'r13']
+25 ['sub', 'r12', 'r13', 'r14']
+26 ['storeAI', 'r14', 'rbss', 4]
+27 ['nop']
+28 ['loadAI', 'rfp', 0, 'r15']
+29 ['loadI', 1, 'r16']
+30 ['sub', 'r15', 'r16', 'r17']
+31 ['storeAI', 'r17', 'rfp', 0]
+32 ['loadAI', 'rbss', 0, 'r18']
+33 ['loadI', 1, 'r19']
+34 ['add', 'r18', 'r19', 'r20']
+35 ['storeAI', 'r20', 'rbss', 0]
+36 ['jumpI', 6]
+6 ['nop']
+7 ['loadAI', 'rfp', 0, 'r3']
+8 ['loadI', 0, 'r4']
+9 ['cmp_GT', 'r3', 'r4', 'r5']
+10 ['cbr', 'r5', 11, 37]
+11 ['nop']
+12 ['loadAI', 'rfp', 0, 'r6']
+13 ['loadI', 2, 'r7']
+14 ['cmp_GT', 'r6', 'r7', 'r8']
+15 ['cbr', 'r8', 16, 22]
+22 ['nop']
+23 ['loadAI', 'rbss', 4, 'r12']
+24 ['loadI', 5, 'r13']
+25 ['sub', 'r12', 'r13', 'r14']
+26 ['storeAI', 'r14', 'rbss', 4]
+27 ['nop']
+28 ['loadAI', 'rfp', 0, 'r15']
+29 ['loadI', 1, 'r16']
+30 ['sub', 'r15', 'r16', 'r17']
+31 ['storeAI', 'r17', 'rfp', 0]
+32 ['loadAI', 'rbss', 0, 'r18']
+33 ['loadI', 1, 'r19']
+34 ['add', 'r18', 'r19', 'r20']
+35 ['storeAI', 'r20', 'rbss', 0]
+36 ['jumpI', 6]
+6 ['nop']
+7 ['loadAI', 'rfp', 0, 'r3']
+8 ['loadI', 0, 'r4']
+9 ['cmp_GT', 'r3', 'r4', 'r5']
+10 ['cbr', 'r5', 11, 37]
+37 ['nop']
+38 ['loadAI', 'rbss', 4, 'r21']
+39 ['halt']
+count	instruction
+   29	loadI
+   27	loadAI
+   22	nop
+   18	storeAI
+   11	cmp_GT
+   11	cbr
+    8	add
+    8	jumpI
+    7	sub
+    1	halt
+
+instructions executed:  142
+register         read:  126 write:  224
+memory           read:   27 write:   18
+
+  register    value
+        r0        0
+        r1      100
+       r10       10
+       r11      130
+       r12      125
+       r13        5
+       r14      120
+       r15        1
+       r16        1
+       r17        0
+       r18        4
+       r19        1
+        r2        5
+       r20        5
+       r21      120
+        r3        0
+        r4        0
+        r5        0
+        r6        1
+        r7        2
+        r8        0
+        r9      120
+      rbss        0
+       rfp     1024
+       rpc       39
+       rsp     1024
+
+    memory    value
+00000000        5
+00000004      120
+00001024        0
+>> Execução finalizada.
+
+=========================================
+ FIM: 2 testes executados.
+=========================================

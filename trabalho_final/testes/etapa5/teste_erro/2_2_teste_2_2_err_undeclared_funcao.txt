@@ -1,0 +1,5 @@
+main -> inteiro :=
+[
+    funcao_fantasma()
+]
+;

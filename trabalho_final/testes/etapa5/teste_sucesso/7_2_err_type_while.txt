@@ -1,0 +1,10 @@
+main -> inteiro :=
+[
+    var f := decimal
+    f := 1
+    enquanto (f) 
+    [
+        f := 0
+    ]
+]
+;

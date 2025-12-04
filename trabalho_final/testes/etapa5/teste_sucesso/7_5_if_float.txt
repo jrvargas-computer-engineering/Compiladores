@@ -1,0 +1,9 @@
+main -> decimal := 
+[
+    var f := decimal
+    se (f < 3)
+    [
+        f := 0
+    ]
+]
+;

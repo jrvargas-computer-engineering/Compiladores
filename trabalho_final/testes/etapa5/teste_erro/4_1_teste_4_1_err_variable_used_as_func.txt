@@ -1,0 +1,6 @@
+var x := inteiro,
+main -> inteiro :=
+[
+    x(10) 
+]
+;

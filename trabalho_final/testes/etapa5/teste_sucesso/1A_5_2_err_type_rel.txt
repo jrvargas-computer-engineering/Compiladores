@@ -1,0 +1,12 @@
+main -> inteiro :=
+[
+    var i := inteiro
+    var f := decimal
+    i := 5
+    f := 5
+    se (i == f) 
+    [
+        i := 1
+    ]
+]
+;
